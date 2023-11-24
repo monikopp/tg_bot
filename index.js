@@ -1,19 +1,37 @@
-const { Telegraf } = require("telegraf");
-const { message } = require("telegraf/filters");
-require("dotenv").config();
-const text = require("./const");
+require('dotenv').config();
+const TelegramBot = require('node-telegram-bot-api');
+const text = require('./const');
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
-// bot.use(async (ctx) => {
-//   await ctx.reply(JSON.stringify(ctx.update, null, 2));
-//   console.log(JSON.stringify(ctx.update, null, 2));
-//  });
-bot.start((ctx) => ctx.reply("Welcome"));
-bot.help((ctx) => ctx.reply(text.commands));
+const token = '6590028032:AAEXCEoI7AvKUTefs2vG3m8rAdvEr6XySmM';
 
-bot.on(message("sticker"), (ctx) => ctx.reply("👍"));
+const bot = new TelegramBot(token, { polling: true });
 
-bot.launch().then(() => console.log("Started"));
+bot.on('message', async (msg) => {
+  const { text } = msg;
+  const chatId = msg.chat.id;
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  bot.setMyCommands([
+    { command: '/start', description: 'Say hi' },
+    { command: '/saysmth', description: 'Say smth' },
+  ]);
+
+  try {
+    if (text === '/start') {
+      await bot.sendMessage(chatId, 'Welcome!');
+      return bot.sendSticker(
+        chatId,
+        'https://tlgrm.eu/_/stickers/ccd/a8d/ccda8d5d-d492-4393-8bb7-e33f77c24907/192/20.webp'
+      );
+    }
+    if (text === '/saysmth') {
+      await bot.sendMessage(chatId, 'You better be joking');
+      return bot.sendSticker(
+        chatId,
+        'https://tlgrm.eu/_/stickers/ccd/a8d/ccda8d5d-d492-4393-8bb7-e33f77c24907/2.webp'
+      );
+    }
+  } catch (e) {
+    return bot.sendMessage(chatId, 'Something went wrong, try again later');
+  }
+  return bot.sendMessage(chatId, 'Try to send me smth else');
+});
