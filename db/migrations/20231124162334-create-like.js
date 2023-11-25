@@ -1,7 +1,8 @@
+"use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Likes', {
+    await queryInterface.createTable("Likes", {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,29 +12,29 @@ module.exports = {
       sender_id: {
         type: Sequelize.INTEGER,
         references: {
-          table: 'Users',
-          key: 'id',
+          model: "Users",
+          key: "id",
         },
       },
       sender_username: {
         type: Sequelize.STRING,
         references: {
-          table: 'Users',
-          key: 'username',
+          model: "Users",
+          key: "username",
         },
       },
       receiver_id: {
         type: Sequelize.INTEGER,
         references: {
-          table: 'Users',
-          key: 'id',
+          model: "Users",
+          key: "id",
         },
       },
       receiver_username: {
         type: Sequelize.STRING,
         references: {
-          table: 'Users',
-          key: 'username',
+          model: "Users",
+          key: "username",
         },
       },
       createdAt: {
@@ -47,6 +48,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Likes');
+    await queryInterface.dropTable("Likes");
   },
 };
