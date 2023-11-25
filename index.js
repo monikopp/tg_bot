@@ -16,6 +16,7 @@ bot.on('message', async (msg) => {
   ]);
 
   try {
+    console.log(msg);
     if (text === '/start') {
       await bot.sendMessage(chatId, 'Welcome!');
       return bot.sendSticker(
