@@ -40,25 +40,6 @@ bot.on("message", async (msg) => {
       case "/menu":
         const mKeyboard = await openKeyboard(chatId, "Меню бота", menuKeyboard);
         return mKeyboard;
-
-      case "4.Закрыть меню":
-        return bot.sendMessage(chatId, "Меню закрыто", {
-          reply_markup: {
-            remove_keyboard: true,
-          },
-        });
-
-      case "2.Изменить анкету":
-        const eKeyboard = await openKeyboard(
-          chatId,
-          "Что меняем?",
-          editProfileKeyboard
-        );
-        return eKeyboard;
-
-      case "Назад":
-        const bKeyboard = await openKeyboard(chatId, "Назад", menuKeyboard);
-        return bKeyboard;
     }
   } catch (e) {
     // if (text === "Назад") {
