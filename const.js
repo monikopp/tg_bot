@@ -2,7 +2,7 @@ const commands = [
   { command: "/start", description: "Запустить бота" },
   { command: "/menu", description: "Открыть меню" },
 ];
-
+const commandsForNew = [{ command: "/start", description: "Запустить бота" }];
 const opts = {
   reply_markup: JSON.stringify({
     inline_keyboard: [
@@ -36,4 +36,5 @@ module.exports = {
   menuKeyboard,
   editProfileKeyboard,
   langKeyboard,
+  commandsForNew,
 };

@@ -2,6 +2,7 @@ require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const {
   commands,
+  commandsForNew,
   // opts,
   menuKeyboard,
   editProfileKeyboard,
@@ -25,14 +26,20 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
   try {
+    const existingUser = await User.findOne({
+      where: { username: msg.from.username },
+    });
     if (text === "/start") {
-      const [user, newUser] = await User.findOrCreate({
-        where: { username: msg.chat.username },
-        defaults: { username: msg.chat.username, chat_id: chatId },
-      });
-      if (!newUser) {
-        await getProfile(bot, chatId, user);
-      } else {
+      // const [user, newUser] = await User.findOrCreate({
+      //   where: { username: msg.chat.username },
+      //   defaults: { username: msg.chat.username, chat_id: chatId },
+      // });
+      // if (!newUser) {
+      //   await getProfile(bot, chatId, user);
+      // }
+      if (existingUser === null) {
+        let user;
+
         const namePrompt = await bot.sendMessage(
           chatId,
           `Привет👋🏻, как тебя зовут? `,
@@ -41,7 +48,12 @@ bot.on("message", async (msg) => {
 
         bot.onReplyToMessage(chatId, namePrompt.message_id, async (nameMsg) => {
           const name = nameMsg.text;
-          await user.update({ first_name: name });
+          user = await User.create({
+            username: msg.chat.username,
+            chat_id: chatId,
+            first_name: name,
+          });
+          // await user.update({ first_name: name });
           const ageQuestion = await bot.sendMessage(
             chatId,
             "Сколько тебе лет?",
@@ -104,14 +116,22 @@ bot.on("message", async (msg) => {
             }
           );
         });
+      } else {
+        await getProfile(bot, chatId, existingUser);
       }
     }
-    if (text === "/menu") {
+    if (text === "/menu" && existingUser !== null) {
       const mKeyboard = await sendMsgWithKeyboard(
         bot,
         chatId,
         "Меню бота:",
         menuKeyboard
+      );
+    }
+    if (text === "/menu" && existingUser === null) {
+      await bot.sendMessage(
+        chatId,
+        `Сначала придется зарегистрироваться :)\nВведи /start чтобы создать анкету`
       );
     }
 
@@ -205,11 +225,7 @@ bot.on("message", async (msg) => {
         break;
     }
   } catch (e) {
-    return bot.sendMessage(
-      chatId,
-      "Something went wrong, try again later",
-      console.log(e)
-    );
+    return bot.sendMessage(chatId, "Проблемка тут", console.log(e));
   }
   // return bot.sendMessage(chatId, "ничего не понял(");
 });
