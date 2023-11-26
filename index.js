@@ -202,6 +202,16 @@ bot.on("message", async (msg) => {
         });
         break;
       case "4.Язык":
+        const langQ = await bot.sendMessage(
+          chatId,
+          "Какой язык изучаешь?",
+          forceReply()
+        );
+        bot.onReplyToMessage(chatId, langQ.message_id, async (langA) => {
+          const lang = langA.text;
+          await user.update({ lang_code: lang });
+          await getProfile(bot, chatId, user);
+        });
         break;
       case "5.Возраст":
         const ageQ = await bot.sendMessage(

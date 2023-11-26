@@ -4,15 +4,13 @@ async function sendMsgWithKeyboard(bot, chatId, text, keyboard) {
       keyboard: keyboard,
       resize_keyboard: true,
       force_reply: true,
-
-      // one_time_keyboard: true,
     },
   });
   return board;
 }
 async function getProfile(bot, chatId, user) {
   const uProfile = {
-    caption: `${user.first_name}, ${user.age} \n${user.lang_code} \n${user.info}`,
+    caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
     parse_mode: "markdown",
   };
   await bot.sendMessage(chatId, "Вот твоя анкета:");
