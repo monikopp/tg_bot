@@ -172,7 +172,7 @@ bot.on("message", async (msg) => {
       case "3.Описание":
         const infoQ = await bot.sendMessage(
           chatId,
-          "Отправб новое описание",
+          "Отправь новое описание",
           forceReply()
         );
         bot.onReplyToMessage(chatId, infoQ.message_id, async (infoA) => {
@@ -183,7 +183,18 @@ bot.on("message", async (msg) => {
         break;
       case "4.Язык":
         break;
-
+      case "5.Возраст":
+        const ageQ = await bot.sendMessage(
+          chatId,
+          "Введи новый возраст",
+          forceReply()
+        );
+        bot.onReplyToMessage(chatId, ageQ.message_id, async (ageA) => {
+          const age = ageA.text;
+          await user.update({ age: age });
+          await getProfile(bot, chatId, user);
+        });
+        break;
       case "Назад":
         const mKeyboard = await sendMsgWithKeyboard(
           bot,

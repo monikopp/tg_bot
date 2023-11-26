@@ -21,6 +21,7 @@ const menuKeyboard = [
 const editProfileKeyboard = [
   ["1.Имя", "2.Фото"],
   ["3.Описание", "4.Язык"],
+  ["5.Возраст"],
   ["Назад"],
 ];
 
