@@ -16,13 +16,7 @@ module.exports = {
           key: "id",
         },
       },
-      sender_username: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: "username",
-        },
-      },
+
       receiver_id: {
         type: Sequelize.INTEGER,
         references: {
@@ -30,13 +24,7 @@ module.exports = {
           key: "id",
         },
       },
-      receiver_username: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: "username",
-        },
-      },
+
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

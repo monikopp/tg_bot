@@ -1,5 +1,6 @@
 require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
+const { Op } = require("sequelize");
 const {
   commands,
   commandsForNew,
@@ -24,19 +25,13 @@ bot.setMyCommands(commands);
 bot.on("message", async (msg) => {
   const { text } = msg;
   const chatId = msg.chat.id;
-
+  console.log(JSON.parse(JSON.stringify(msg)));
   try {
     const existingUser = await User.findOne({
       where: { username: msg.from.username },
     });
+
     if (text === "/start") {
-      // const [user, newUser] = await User.findOrCreate({
-      //   where: { username: msg.chat.username },
-      //   defaults: { username: msg.chat.username, chat_id: chatId },
-      // });
-      // if (!newUser) {
-      //   await getProfile(bot, chatId, user);
-      // }
       if (existingUser === null) {
         let user;
 
@@ -76,6 +71,7 @@ bot.on("message", async (msg) => {
                 lagQuestion.message_id,
                 async (langAnswer) => {
                   const lang = langAnswer.text;
+
                   await user.update({ lang_code: lang });
                   await bot.sendMessage(chatId, ` ${lang}, круто!`);
                   const infoQuestion = await bot.sendMessage(
@@ -150,6 +146,13 @@ bot.on("message", async (msg) => {
         break;
       case "3.Смотреть другие анкеты":
         await bot.sendMessage(chatId, "Пока нельзя, в разработке");
+        const find = await User.findAll({
+          where: {
+            id: { [Op.not]: user.id },
+            lang_code: { [Op.substring]: user.lang_code },
+          },
+        });
+        console.log(find);
         break;
       case "4.Закрыть меню":
         bot.sendMessage(chatId, "Меню закрыто", {

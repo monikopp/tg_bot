@@ -1,4 +1,4 @@
-const { Model } = require('sequelize');
+const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class Like extends Model {
@@ -9,28 +9,27 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate({ User }) {
       User.belongsToMany(User, {
-        as: 'Sender',
-        through: 'Likes',
-        foreignKey: 'sender_id',
+        as: "Sender",
+        through: "Likes",
+        foreignKey: "sender_id",
       });
       User.belongsToMany(User, {
-        as: 'Receiver',
-        through: 'Likes',
-        foreignKey: 'receiver_id',
+        as: "Receiver",
+        through: "Likes",
+        foreignKey: "receiver_id",
       });
     }
   }
   Like.init(
     {
       sender_id: DataTypes.INTEGER,
-      sender_username: DataTypes.STRING,
+
       receiver_id: DataTypes.INTEGER,
-      receiver_username: DataTypes.STRING,
     },
     {
       sequelize,
-      modelName: 'Like',
-    },
+      modelName: "Like",
+    }
   );
   return Like;
 };
