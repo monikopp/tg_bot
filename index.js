@@ -13,18 +13,17 @@ const {
   forceReply,
   getProfile,
 } = require("./functions");
+require("dotenv").config();
 const { User } = require("./db/models");
-const token = "6590028032:AAEXCEoI7AvKUTefs2vG3m8rAdvEr6XySmM";
 
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.setMyCommands(commands);
 
 bot.on("message", async (msg) => {
   const { text } = msg;
   const chatId = msg.chat.id;
-  let userProfile;
-  let profile;
+
   try {
     if (text === "/start") {
       const [user, newUser] = await User.findOrCreate({
