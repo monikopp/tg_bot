@@ -24,4 +24,15 @@ const editProfileKeyboard = [
   ["Назад"],
 ];
 
-module.exports = { commands, opts, menuKeyboard, editProfileKeyboard };
+const langKeyboard = [
+  ["Английский", "Китайский", "Корейский"],
+  ["Японский", "1", "2"],
+  ["3", "4", "5"],
+];
+module.exports = {
+  commands,
+  opts,
+  menuKeyboard,
+  editProfileKeyboard,
+  langKeyboard,
+};
