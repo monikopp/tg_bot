@@ -128,6 +128,9 @@ bot.on("message", async (msg) => {
           editProfileKeyboard
         );
         break;
+      case "3.Смотреть другие анкеты":
+        await bot.sendMessage(chatId, "Пока нельзя, в разработке");
+        break;
       case "4.Закрыть меню":
         bot.sendMessage(chatId, "Меню закрыто", {
           reply_markup: {
@@ -151,6 +154,36 @@ bot.on("message", async (msg) => {
           await getProfile(bot, chatId, user);
         });
         break;
+      case "2.Фото":
+        const photoQ = await bot.sendMessage(
+          chatId,
+          "Отправь новое фото",
+          forceReply()
+        );
+        bot.onReplyToMessage(chatId, photoQ.message_id, async (photoA) => {
+          const photo = photoA.photo;
+          const fileInfo = await bot.getFile(photo[2].file_id);
+          await user.update({ photo: fileInfo.file_path });
+          const pfp = await bot.downloadFile(photo[2].file_id, "./photos");
+
+          await getProfile(bot, chatId, user);
+        });
+        break;
+      case "3.Описание":
+        const infoQ = await bot.sendMessage(
+          chatId,
+          "Отправб новое описание",
+          forceReply()
+        );
+        bot.onReplyToMessage(chatId, infoQ.message_id, async (infoA) => {
+          const info = infoA.text;
+          await user.update({ info: info });
+          await getProfile(bot, chatId, user);
+        });
+        break;
+      case "4.Язык":
+        break;
+
       case "Назад":
         const mKeyboard = await sendMsgWithKeyboard(
           bot,
