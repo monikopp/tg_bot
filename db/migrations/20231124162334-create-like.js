@@ -11,31 +11,31 @@ module.exports = {
       },
       sender_id: {
         type: Sequelize.INTEGER,
-        // references: {
-        //   model: "Users",
-        //   key: "id",
-        // },
+        references: {
+          model: "Users",
+          key: "id",
+        },
       },
       sender_username: {
         type: Sequelize.STRING,
-        // references: {
-        //   model: "Users",
-        //   key: "username",
-        // },
+        references: {
+          model: "Users",
+          key: "username",
+        },
       },
       receiver_id: {
         type: Sequelize.INTEGER,
-        // references: {
-        //   model: "Users",
-        //   key: "id",
-        // },
+        references: {
+          model: "Users",
+          key: "id",
+        },
       },
       receiver_username: {
         type: Sequelize.STRING,
-        // references: {
-        //   model: "Users",
-        //   key: "username",
-        // },
+        references: {
+          model: "Users",
+          key: "username",
+        },
       },
       createdAt: {
         allowNull: false,

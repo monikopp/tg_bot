@@ -8,6 +8,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
+        unique: true,
       },
       chat_id: {
         type: Sequelize.INTEGER,
@@ -15,11 +16,15 @@ module.exports = {
       first_name: {
         type: Sequelize.STRING,
       },
-      // last_name: {
-      //   type: Sequelize.STRING,
-      // },
+      age: {
+        type: Sequelize.INTEGER,
+      },
+      photo: {
+        type: Sequelize.STRING,
+      },
       username: {
         type: Sequelize.STRING,
+        unique: true,
       },
       info: {
         type: Sequelize.TEXT,
