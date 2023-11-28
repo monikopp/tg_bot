@@ -513,11 +513,7 @@ bot.on("message", async (msg) => {
         break;
     }
   } catch (e) {
-    return bot.sendMessage(
-      chatId,
-      "Проблемка тут",
-      console.log(JSON.parse(JSON.stringify(e)))
-    );
+    return bot.sendMessage(chatId, "Проблемка тут", console.log(e));
   }
   // return bot.sendMessage(chatId, "ничего не понял(");
 });
