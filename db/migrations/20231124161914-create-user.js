@@ -32,6 +32,9 @@ module.exports = {
       lang_code: {
         type: Sequelize.STRING,
       },
+      sex: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

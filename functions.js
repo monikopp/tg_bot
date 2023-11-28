@@ -17,6 +17,15 @@ async function getProfile(bot, chatId, user) {
   const res = await bot.sendPhoto(chatId, user.photo, uProfile);
   return res;
 }
+async function getOtherProfile(bot, chatId, user, keyboard) {
+  const uProfile = {
+    caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
+    parse_mode: "markdown",
+  };
+  await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
+  const res = await bot.sendPhoto(chatId, user.photo, uProfile);
+  return res;
+}
 function openKeyboard(keyboard) {
   const board = {
     reply_markup: {
@@ -37,4 +46,10 @@ function forceReply() {
   return force;
 }
 
-module.exports = { sendMsgWithKeyboard, openKeyboard, forceReply, getProfile };
+module.exports = {
+  sendMsgWithKeyboard,
+  openKeyboard,
+  forceReply,
+  getProfile,
+  getOtherProfile,
+};

@@ -7,26 +7,38 @@ const {
   // opts,
   menuKeyboard,
   editProfileKeyboard,
+  like,
   langKeyboard,
+  likeKeyboard,
 } = require("./const");
 const {
   sendMsgWithKeyboard,
   openKeyboard,
   forceReply,
   getProfile,
+  getOtherProfile,
 } = require("./functions");
 require("dotenv").config();
-const { User } = require("./db/models");
+const { User, Like } = require("./db/models");
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.setMyCommands(commands);
-
+let find;
+let liked;
+let showingUser;
+let prevUser;
 bot.on("message", async (msg) => {
   const { text } = msg;
   const chatId = msg.chat.id;
-  console.log(JSON.parse(JSON.stringify(msg)));
+  // console.log(JSON.parse(JSON.stringify(msg)));
   try {
+    var originMessageID = msg["message_id"];
+    if (text === "lol") {
+      bot.sendMessage(chatId, "ahhaha", {
+        reply_to_message_id: originMessageID,
+      });
+    }
     const existingUser = await User.findOne({
       where: { username: msg.from.username },
     });
@@ -60,49 +72,66 @@ bot.on("message", async (msg) => {
             async (ageAnswer) => {
               const age = ageAnswer.text;
               await user.update({ age: age });
-              const lagQuestion = await bot.sendMessage(
+              const sexQuestion = await bot.sendMessage(
                 chatId,
-                `Какой язык изучаешь? `,
+                "Твой пол?(Парень/Девушка)",
                 forceReply()
               );
 
               bot.onReplyToMessage(
                 chatId,
-                lagQuestion.message_id,
-                async (langAnswer) => {
-                  const lang = langAnswer.text;
+                sexQuestion.message_id,
+                async (sexAnswer) => {
+                  const sex = sexAnswer.text;
+                  await user.update({ sex: sex });
 
-                  await user.update({ lang_code: lang });
-                  await bot.sendMessage(chatId, ` ${lang}, круто!`);
-                  const infoQuestion = await bot.sendMessage(
+                  const lagQuestion = await bot.sendMessage(
                     chatId,
-                    "Добавь описание к своей анкете:",
+                    `Какой язык изучаешь? `,
                     forceReply()
                   );
+
                   bot.onReplyToMessage(
                     chatId,
-                    infoQuestion.message_id,
-                    async (infoAnswer) => {
-                      const info = infoAnswer.text;
-                      await user.update({ info: info });
-                      const photoQuestion = await bot.sendMessage(
+                    lagQuestion.message_id,
+                    async (langAnswer) => {
+                      const lang = langAnswer.text;
+
+                      await user.update({ lang_code: lang });
+                      await bot.sendMessage(chatId, ` ${lang}, круто!`);
+                      const infoQuestion = await bot.sendMessage(
                         chatId,
-                        "Отправь фото для анкеты",
+                        "Добавь описание к своей анкете:",
                         forceReply()
                       );
                       bot.onReplyToMessage(
                         chatId,
-                        photoQuestion.message_id,
-                        async (photoAnswer) => {
-                          const photo = photoAnswer.photo;
-                          const fileInfo = await bot.getFile(photo[2].file_id);
-                          await user.update({ photo: fileInfo.file_path });
-                          const pfp = await bot.downloadFile(
-                            photo[2].file_id,
-                            "./photos"
+                        infoQuestion.message_id,
+                        async (infoAnswer) => {
+                          const info = infoAnswer.text;
+                          await user.update({ info: info });
+                          const photoQuestion = await bot.sendMessage(
+                            chatId,
+                            "Отправь фото для анкеты",
+                            forceReply()
                           );
+                          bot.onReplyToMessage(
+                            chatId,
+                            photoQuestion.message_id,
+                            async (photoAnswer) => {
+                              const photo = photoAnswer.photo;
+                              const fileInfo = await bot.getFile(
+                                photo[2].file_id
+                              );
+                              await user.update({ photo: fileInfo.file_path });
+                              const pfp = await bot.downloadFile(
+                                photo[2].file_id,
+                                "./photos"
+                              );
 
-                          await getProfile(bot, chatId, user);
+                              await getProfile(bot, chatId, user);
+                            }
+                          );
                         }
                       );
                     }
@@ -116,6 +145,7 @@ bot.on("message", async (msg) => {
         await getProfile(bot, chatId, existingUser);
       }
     }
+    const user = await User.findOne({ where: { username: msg.from.username } });
     if (text === "/menu" && existingUser !== null) {
       const mKeyboard = await sendMsgWithKeyboard(
         bot,
@@ -131,7 +161,32 @@ bot.on("message", async (msg) => {
       );
     }
 
-    const user = await User.findOne({ where: { username: msg.from.username } });
+    if (text === "❤️" && msg.message_id - 1 === prevUser.message_id) {
+      await Like.create({ sender_id: user.id, receiver_id: showingUser.id });
+      liked = find.rows.indexOf(showingUser);
+      // find.splice(0, 1);
+      find = await User.findAndCountAll({
+        where: {
+          id: { [Op.not]: user.id },
+          [Op.or]: [
+            { lang_code: { [Op.substring]: user.lang_code } },
+            { age: { [Op.between]: [user.age - 1, user.age + 1] } },
+          ],
+        },
+        offset: liked + 1,
+        limit: 1,
+      });
+      console.log(find, "-------------------------");
+      if (find.count > 0) {
+        showingUser = find.rows[0];
+        // console.log(JSON.parse(JSON.stringify(showingUser)));
+        prevUser = getOtherProfile(bot, chatId, showingUser, likeKeyboard);
+      } else {
+        console.log("===========");
+        await bot.sendMessage(chatId, "Нет анкет для показа");
+      }
+    }
+
     switch (text) {
       case "1.Смотреть свою анкету":
         await getProfile(bot, chatId, user);
@@ -145,14 +200,30 @@ bot.on("message", async (msg) => {
         );
         break;
       case "3.Смотреть другие анкеты":
-        await bot.sendMessage(chatId, "Пока нельзя, в разработке");
-        const find = await User.findAll({
+        // await bot.sendMessage(chatId, "Пока нельзя, в разработке");
+        find = await User.findAndCountAll({
           where: {
             id: { [Op.not]: user.id },
-            lang_code: { [Op.substring]: user.lang_code },
+            [Op.or]: [
+              { lang_code: { [Op.substring]: user.lang_code } },
+              { age: { [Op.between]: [user.age - 1, user.age + 1] } },
+            ],
           },
+          offset: 0,
+          limit: 1,
         });
-        console.log(find);
+        console.log(find, "HAHAAHAHAHAHAHAHHA");
+        if (find.count > 0) {
+          showingUser = find.rows[0];
+          prevUser = await getOtherProfile(
+            bot,
+            chatId,
+            showingUser,
+            likeKeyboard
+          );
+        } else {
+          await bot.sendMessage(chatId, "Нет анкет для показа");
+        }
         break;
       case "4.Закрыть меню":
         bot.sendMessage(chatId, "Меню закрыто", {
@@ -172,7 +243,7 @@ bot.on("message", async (msg) => {
         );
         bot.onReplyToMessage(chatId, nameQ.message_id, async (msg) => {
           first_name = msg.text;
-          console.log(msg, "========");
+          // console.log(msg, "========");
           await user.update({ first_name: first_name });
           await getProfile(bot, chatId, user);
         });
@@ -225,6 +296,18 @@ bot.on("message", async (msg) => {
         bot.onReplyToMessage(chatId, ageQ.message_id, async (ageA) => {
           const age = ageA.text;
           await user.update({ age: age });
+          await getProfile(bot, chatId, user);
+        });
+        break;
+      case "6.Пол":
+        const sexQ = await bot.sendMessage(
+          chatId,
+          "Твой пол?(Парень/Девушка)",
+          forceReply()
+        );
+        bot.onReplyToMessage(chatId, sexQ.message_id, async (sexA) => {
+          const sex = sexA.text;
+          await user.update({ sex: sex });
           await getProfile(bot, chatId, user);
         });
         break;
