@@ -14,9 +14,16 @@ async function getProfile(bot, chatId, user) {
     parse_mode: "markdown",
   };
   await bot.sendMessage(chatId, "Вот твоя анкета:");
-  const res = await bot.sendPhoto(chatId, user.photo, uProfile);
-  return res;
+  if (user.photo === null) {
+    const res = await bot.sendVideo(chatId, user.video, uProfile);
+    return res;
+  } else {
+    const res = await bot.sendPhoto(chatId, user.photo, uProfile);
+    return res;
+  }
+  // await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
 }
+
 async function getOtherProfile(bot, chatId, user, keyboard) {
   const uProfile = {
     caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,

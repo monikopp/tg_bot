@@ -22,6 +22,9 @@ module.exports = {
       photo: {
         type: Sequelize.STRING,
       },
+      video: {
+        type: Sequelize.STRING,
+      },
       username: {
         type: Sequelize.STRING,
         unique: true,

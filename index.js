@@ -25,20 +25,14 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.setMyCommands(commands);
 let find;
-let liked;
+
 let showingUser;
 let prevUser;
 bot.on("message", async (msg) => {
   const { text } = msg;
   const chatId = msg.chat.id;
-  // console.log(JSON.parse(JSON.stringify(msg)));
+
   try {
-    var originMessageID = msg["message_id"];
-    if (text === "lol") {
-      bot.sendMessage(chatId, "ahhaha", {
-        reply_to_message_id: originMessageID,
-      });
-    }
     const existingUser = await User.findOne({
       where: { username: msg.from.username },
     });
@@ -112,24 +106,90 @@ bot.on("message", async (msg) => {
                           await user.update({ info: info });
                           const photoQuestion = await bot.sendMessage(
                             chatId,
-                            "Отправь фото для анкеты",
+                            "Отправь фото/видео(не более 15 секунд!)",
                             forceReply()
                           );
                           bot.onReplyToMessage(
                             chatId,
                             photoQuestion.message_id,
                             async (photoAnswer) => {
-                              const photo = photoAnswer.photo;
-                              const fileInfo = await bot.getFile(
-                                photo[2].file_id
-                              );
-                              await user.update({ photo: fileInfo.file_path });
-                              const pfp = await bot.downloadFile(
-                                photo[2].file_id,
-                                "./photos"
-                              );
+                              if (photoAnswer.photo) {
+                                const photo = photoAnswer.photo;
+                                const fileInfo = await bot.getFile(
+                                  photo[2].file_id
+                                );
+                                await user.update({
+                                  photo: fileInfo.file_path,
+                                });
+                                const pfp = await bot.downloadFile(
+                                  photo[2].file_id,
+                                  "./photos"
+                                );
 
-                              await getProfile(bot, chatId, user);
+                                await getProfile(bot, chatId, user);
+                                await sendMsgWithKeyboard(
+                                  bot,
+                                  chatId,
+                                  `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                  menuKeyboard
+                                );
+                              }
+                              if (photoAnswer.video) {
+                                const video = photoAnswer.video;
+                                if (video.duration > 16) {
+                                  const prompt = await bot.sendMessage(
+                                    chatId,
+                                    "Видео должно быть меньше 15 секунд!",
+                                    forceReply()
+                                  );
+                                  bot.onReplyToMessage(
+                                    chatId,
+                                    prompt.message_id,
+                                    async (ans) => {
+                                      const video = photoAnswer.video;
+                                      const fileInfo = await bot.getFile(
+                                        video.file_id
+                                      );
+
+                                      await user.update({
+                                        video: fileInfo.file_path,
+                                      });
+
+                                      const pfp = await bot.downloadFile(
+                                        video.file_id,
+                                        "./videos"
+                                      );
+                                      await getProfile(bot, chatId, user);
+                                      await sendMsgWithKeyboard(
+                                        bot,
+                                        chatId,
+                                        `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                        menuKeyboard
+                                      );
+                                    }
+                                  );
+                                } else {
+                                  const fileInfo = await bot.getFile(
+                                    video.file_id
+                                  );
+
+                                  await user.update({
+                                    video: fileInfo.file_path,
+                                  });
+
+                                  const pfp = await bot.downloadFile(
+                                    video.file_id,
+                                    "./videos"
+                                  );
+                                  await getProfile(bot, chatId, user);
+                                  await sendMsgWithKeyboard(
+                                    bot,
+                                    chatId,
+                                    `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                    menuKeyboard
+                                  );
+                                }
+                              }
                             }
                           );
                         }
@@ -143,6 +203,12 @@ bot.on("message", async (msg) => {
         });
       } else {
         await getProfile(bot, chatId, existingUser);
+        await sendMsgWithKeyboard(
+          bot,
+          chatId,
+          `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+          menuKeyboard
+        );
       }
     }
     const user = await User.findOne({ where: { username: msg.from.username } });
@@ -160,36 +226,60 @@ bot.on("message", async (msg) => {
         `Сначала придется зарегистрироваться :)\nВведи /start чтобы создать анкету`
       );
     }
-
-    if (text === "❤️" && msg.message_id - 1 === prevUser.message_id) {
-      await Like.create({ sender_id: user.id, receiver_id: showingUser.id });
-      liked = find.rows.indexOf(showingUser);
-      // find.splice(0, 1);
-      find = await User.findAndCountAll({
-        where: {
-          id: { [Op.not]: user.id },
-          [Op.or]: [
-            { lang_code: { [Op.substring]: user.lang_code } },
-            { age: { [Op.between]: [user.age - 1, user.age + 1] } },
-          ],
-        },
-        offset: liked + 1,
-        limit: 1,
+    if (text === "👎") {
+      await Like.create({
+        senderId: user.id,
+        receiverId: showingUser.id,
+        type: "dislike",
       });
-      console.log(find, "-------------------------");
-      if (find.count > 0) {
+
+      if (find.rows.length) {
         showingUser = find.rows[0];
-        // console.log(JSON.parse(JSON.stringify(showingUser)));
         prevUser = getOtherProfile(bot, chatId, showingUser, likeKeyboard);
+        find.rows.splice(0, 1);
       } else {
-        console.log("===========");
-        await bot.sendMessage(chatId, "Нет анкет для показа");
+        await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
+      }
+    }
+    if (text === "❤️") {
+      await Like.create({
+        senderId: user.id,
+        receiverId: showingUser.id,
+        type: "like",
+      });
+      const liked = await Like.findOne({
+        where: { senderId: showingUser.id, receiverId: user.id },
+        include: { model: User, as: "Sender" },
+      });
+
+      if (liked !== null && liked.type === "like") {
+        await bot.sendMessage(
+          chatId,
+          `Кажется у вас взаимная симпатия! Держи @${liked.Sender.username}`
+        );
+        await bot.sendMessage(
+          liked.Sender.chat_id,
+          ` Кажется у вас взаимная симпатия! Держи @${user.username}`
+        );
+      }
+      if (find.rows.length) {
+        showingUser = find.rows[0];
+        prevUser = getOtherProfile(bot, chatId, showingUser, likeKeyboard);
+        find.rows.splice(0, 1);
+      } else {
+        await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
       }
     }
 
     switch (text) {
       case "1.Смотреть свою анкету":
         await getProfile(bot, chatId, user);
+        await sendMsgWithKeyboard(
+          bot,
+          chatId,
+          `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+          menuKeyboard
+        );
         break;
       case "2.Изменить анкету":
         const eKeyboard = await sendMsgWithKeyboard(
@@ -200,7 +290,6 @@ bot.on("message", async (msg) => {
         );
         break;
       case "3.Смотреть другие анкеты":
-        // await bot.sendMessage(chatId, "Пока нельзя, в разработке");
         find = await User.findAndCountAll({
           where: {
             id: { [Op.not]: user.id },
@@ -210,19 +299,36 @@ bot.on("message", async (msg) => {
             ],
           },
           offset: 0,
-          limit: 1,
         });
-        console.log(find, "HAHAAHAHAHAHAHAHHA");
+
         if (find.count > 0) {
           showingUser = find.rows[0];
-          prevUser = await getOtherProfile(
-            bot,
-            chatId,
-            showingUser,
-            likeKeyboard
-          );
-        } else {
-          await bot.sendMessage(chatId, "Нет анкет для показа");
+          const alreadyLiked = await Like.findAll({
+            where: { senderId: user.id },
+            as: "Sender",
+          });
+
+          for (let i = 0; i < find.rows.length; i++) {
+            for (let j = 0; j < alreadyLiked.length; j++) {
+              if (find.rows[i]?.id === alreadyLiked[j].receiverId) {
+                find.rows.splice(i, 1);
+              }
+            }
+          }
+
+          if (find.rows.length) {
+            prevUser = await getOtherProfile(
+              bot,
+              chatId,
+              showingUser,
+              likeKeyboard
+            );
+            find.rows.splice(0, 1);
+          }
+        }
+
+        if (find.rows.length === 0) {
+          await bot.sendMessage(chatId, "Новых анкет пока нет");
         }
         break;
       case "4.Закрыть меню":
@@ -243,25 +349,87 @@ bot.on("message", async (msg) => {
         );
         bot.onReplyToMessage(chatId, nameQ.message_id, async (msg) => {
           first_name = msg.text;
-          // console.log(msg, "========");
+
           await user.update({ first_name: first_name });
           await getProfile(bot, chatId, user);
+          await sendMsgWithKeyboard(
+            bot,
+            chatId,
+            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            menuKeyboard
+          );
         });
         break;
-      case "2.Фото":
+      case "2.Фото/Видео":
         const photoQ = await bot.sendMessage(
           chatId,
-          "Отправь новое фото",
+          "Отправь новое фото/видео(меньше 15 секунд!)",
           forceReply()
         );
-        bot.onReplyToMessage(chatId, photoQ.message_id, async (photoA) => {
-          const photo = photoA.photo;
-          const fileInfo = await bot.getFile(photo[2].file_id);
-          await user.update({ photo: fileInfo.file_path });
-          const pfp = await bot.downloadFile(photo[2].file_id, "./photos");
+        bot.onReplyToMessage(
+          chatId,
+          photoQuestion.message_id,
+          async (photoAnswer) => {
+            if (photoAnswer.photo) {
+              const photo = photoAnswer.photo;
+              const fileInfo = await bot.getFile(photo[2].file_id);
+              await user.update({
+                photo: fileInfo.file_path,
+              });
+              await bot.downloadFile(photo[2].file_id, "./photos");
 
-          await getProfile(bot, chatId, user);
-        });
+              await getProfile(bot, chatId, user);
+              await sendMsgWithKeyboard(
+                bot,
+                chatId,
+                `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                menuKeyboard
+              );
+            }
+            if (photoAnswer.video) {
+              const video = photoAnswer.video;
+              if (video.duration > 16) {
+                const prompt = await bot.sendMessage(
+                  chatId,
+                  "Видео должно быть меньше 15 секунд!",
+                  forceReply()
+                );
+                bot.onReplyToMessage(chatId, prompt.message_id, async (ans) => {
+                  const video = photoAnswer.video;
+                  const fileInfo = await bot.getFile(video.file_id);
+
+                  await user.update({
+                    video: fileInfo.file_path,
+                  });
+
+                  await bot.downloadFile(video.file_id, "./videos");
+                  await getProfile(bot, chatId, user);
+                  await sendMsgWithKeyboard(
+                    bot,
+                    chatId,
+                    `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                    menuKeyboard
+                  );
+                });
+              } else {
+                const fileInfo = await bot.getFile(video.file_id);
+
+                await user.update({
+                  video: fileInfo.file_path,
+                });
+
+                await bot.downloadFile(video.file_id, "./videos");
+                await getProfile(bot, chatId, user);
+                await sendMsgWithKeyboard(
+                  bot,
+                  chatId,
+                  `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                  menuKeyboard
+                );
+              }
+            }
+          }
+        );
         break;
       case "3.Описание":
         const infoQ = await bot.sendMessage(
@@ -273,6 +441,12 @@ bot.on("message", async (msg) => {
           const info = infoA.text;
           await user.update({ info: info });
           await getProfile(bot, chatId, user);
+          await sendMsgWithKeyboard(
+            bot,
+            chatId,
+            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            menuKeyboard
+          );
         });
         break;
       case "4.Язык":
@@ -285,6 +459,12 @@ bot.on("message", async (msg) => {
           const lang = langA.text;
           await user.update({ lang_code: lang });
           await getProfile(bot, chatId, user);
+          await sendMsgWithKeyboard(
+            bot,
+            chatId,
+            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            menuKeyboard
+          );
         });
         break;
       case "5.Возраст":
@@ -297,6 +477,12 @@ bot.on("message", async (msg) => {
           const age = ageA.text;
           await user.update({ age: age });
           await getProfile(bot, chatId, user);
+          await sendMsgWithKeyboard(
+            bot,
+            chatId,
+            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            menuKeyboard
+          );
         });
         break;
       case "6.Пол":
@@ -309,6 +495,12 @@ bot.on("message", async (msg) => {
           const sex = sexA.text;
           await user.update({ sex: sex });
           await getProfile(bot, chatId, user);
+          await sendMsgWithKeyboard(
+            bot,
+            chatId,
+            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            menuKeyboard
+          );
         });
         break;
       case "Назад":
@@ -321,7 +513,11 @@ bot.on("message", async (msg) => {
         break;
     }
   } catch (e) {
-    return bot.sendMessage(chatId, "Проблемка тут", console.log(e));
+    return bot.sendMessage(
+      chatId,
+      "Проблемка тут",
+      console.log(JSON.parse(JSON.stringify(e)))
+    );
   }
   // return bot.sendMessage(chatId, "ничего не понял(");
 });

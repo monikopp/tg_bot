@@ -42,6 +42,7 @@ build/Release
 node_modules/
 jspm_packages/
 photos/
+videos/
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 

@@ -18,17 +18,17 @@ const menuKeyboard = [
 ];
 
 const editProfileKeyboard = [
-  ["1.Имя", "2.Фото"],
+  ["1.Имя", "2.Фото/Видео"],
   ["3.Описание", "4.Язык"],
   ["5.Возраст", "6.Пол"],
   ["Назад"],
 ];
 
-const langKeyboard = [
-  ["Английский", "Китайский", "Корейский"],
-  ["Японский", "1", "2"],
-  ["3", "4", "5"],
-];
+// const langKeyboard = [
+//   ["Английский", "Китайский", "Корейский"],
+//   ["Японский", "1", "2"],
+//   ["3", "4", "5"],
+// ];
 
 // const sexKeyboard=[
 //   ["Мужской", "Женский"],
@@ -39,6 +39,6 @@ module.exports = {
   like,
   menuKeyboard,
   editProfileKeyboard,
-  langKeyboard,
+
   commandsForNew,
 };

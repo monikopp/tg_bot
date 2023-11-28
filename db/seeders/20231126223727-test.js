@@ -3,16 +3,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add seed commands here.
-     *
-     * Example:
-     * await queryInterface.bulkInsert('People', [{
-     *   name: 'John Doe',
-     *   isBetaMember: false
-     * }], {});
-     */
-
     await queryInterface.bulkInsert("Users", [
       {
         chat_id: 123123123,
@@ -22,7 +12,7 @@ module.exports = {
         photo: "./photos/file_8.jpg",
         info: "Студент",
         lang_code: "Русский",
-        sex: "женский",
+        sex: "Парень",
         // preferences: "female",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -34,21 +24,27 @@ module.exports = {
         age: 18,
         photo: "./photos/file_7.jpg",
         info: "Студент",
-        sex: "мужской",
+        sex: "Девушка",
         // preferences: "female",
         lang_code: "Китайский",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        chat_id: 1235,
+        username: "loh",
+        first_name: "loh",
+        age: 19,
+        photo: "./photos/file_6.jpg",
+        info: "Студент",
+        sex: "Парень",
+        // preferences: "female",
+        lang_code: "Английский",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     ]);
   },
 
-  async down(queryInterface, Sequelize) {
-    /**
-     * Add commands to revert seed here.
-     *
-     * Example:
-     * await queryInterface.bulkDelete('People', null, {});
-     */
-  },
+  async down(queryInterface, Sequelize) {},
 };
