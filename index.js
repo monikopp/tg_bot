@@ -21,7 +21,7 @@ const {
 require("dotenv").config();
 const { User, Like } = require("./db/models");
 
-const bot = new TelegramBot(process.env.API_TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.API_TOKEN);
 
 bot.setMyCommands(commands);
 let find;
