@@ -155,7 +155,7 @@ bot.on("message", async (msg) => {
                                         video: fileInfo.file_path,
                                       });
 
-                                      const pfp = await bot.downloadFile(
+                                      await bot.downloadFile(
                                         video.file_id,
                                         "./videos"
                                       );
@@ -177,7 +177,7 @@ bot.on("message", async (msg) => {
                                     video: fileInfo.file_path,
                                   });
 
-                                  const pfp = await bot.downloadFile(
+                                  await bot.downloadFile(
                                     video.file_id,
                                     "./videos"
                                   );
@@ -318,7 +318,7 @@ bot.on("message", async (msg) => {
 
           if (find.rows.length === 0) {
             await bot.sendMessage(chatId, "Новых анкет пока нет");
-          } else if (find.rows.length > 0) {
+          } else {
             prevUser = await getOtherProfile(
               bot,
               chatId,
