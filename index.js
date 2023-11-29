@@ -469,7 +469,11 @@ bot.on("message", async (msg) => {
                 const supPhoto = await supabase.storage
                   .from("photos")
                   .upload(fileInfo.file_path, photo[2]);
-                await bot.sendMessage(chatId, `${supPhoto}`);
+                await bot.sendMessage(
+                  chatId,
+                  `${supPhoto}`,
+                  console.log(JSON.stringify(supPhoto))
+                );
                 await getProfile(bot, chatId, user);
                 await sendMsgWithKeyboard(
                   bot,
