@@ -323,13 +323,13 @@ bot.on("message", async (msg) => {
               showingUser,
               likeKeyboard
             );
-            find.rows.splice(0, 1);
           }
         }
 
         if (find.rows.length === 0) {
           await bot.sendMessage(chatId, "Новых анкет пока нет");
         }
+        find.rows.splice(0, 1);
         break;
       case "4.Закрыть меню":
         bot.sendMessage(chatId, "Меню закрыто", {
