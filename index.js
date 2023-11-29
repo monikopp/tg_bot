@@ -325,9 +325,7 @@ bot.on("message", async (msg) => {
             );
             find.rows.splice(0, 1);
           }
-        }
-
-        if (find.rows.length === 0) {
+        } else if (find.rows.length === 0) {
           await bot.sendMessage(chatId, "Новых анкет пока нет");
         }
         break;
