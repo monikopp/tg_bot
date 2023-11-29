@@ -366,52 +366,33 @@ bot.on("message", async (msg) => {
           "Отправь новое фото/видео(меньше 15 секунд!)",
           forceReply()
         );
-        bot.onReplyToMessage(
-          chatId,
-          photoQuestion.message_id,
-          async (photoAnswer) => {
-            if (photoAnswer.photo) {
-              const photo = photoAnswer.photo;
-              const fileInfo = await bot.getFile(photo[2].file_id);
-              await user.update({
-                photo: fileInfo.file_path,
-              });
-              await bot.downloadFile(photo[2].file_id, "./photos");
+        bot.onReplyToMessage(chatId, photoQ.message_id, async (photoAnswer) => {
+          if (photoAnswer.photo) {
+            const photo = photoAnswer.photo;
+            const fileInfo = await bot.getFile(photo[2].file_id);
+            await user.update({
+              photo: fileInfo.file_path,
+            });
+            await bot.downloadFile(photo[2].file_id, "./photos");
 
-              await getProfile(bot, chatId, user);
-              await sendMsgWithKeyboard(
-                bot,
+            await getProfile(bot, chatId, user);
+            await sendMsgWithKeyboard(
+              bot,
+              chatId,
+              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              menuKeyboard
+            );
+          }
+          if (photoAnswer.video) {
+            const video = photoAnswer.video;
+            if (video.duration > 16) {
+              const prompt = await bot.sendMessage(
                 chatId,
-                `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
-                menuKeyboard
+                "Видео должно быть меньше 15 секунд!",
+                forceReply()
               );
-            }
-            if (photoAnswer.video) {
-              const video = photoAnswer.video;
-              if (video.duration > 16) {
-                const prompt = await bot.sendMessage(
-                  chatId,
-                  "Видео должно быть меньше 15 секунд!",
-                  forceReply()
-                );
-                bot.onReplyToMessage(chatId, prompt.message_id, async (ans) => {
-                  const video = photoAnswer.video;
-                  const fileInfo = await bot.getFile(video.file_id);
-
-                  await user.update({
-                    video: fileInfo.file_path,
-                  });
-
-                  await bot.downloadFile(video.file_id, "./videos");
-                  await getProfile(bot, chatId, user);
-                  await sendMsgWithKeyboard(
-                    bot,
-                    chatId,
-                    `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
-                    menuKeyboard
-                  );
-                });
-              } else {
+              bot.onReplyToMessage(chatId, prompt.message_id, async (ans) => {
+                const video = photoAnswer.video;
                 const fileInfo = await bot.getFile(video.file_id);
 
                 await user.update({
@@ -426,10 +407,25 @@ bot.on("message", async (msg) => {
                   `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
                   menuKeyboard
                 );
-              }
+              });
+            } else {
+              const fileInfo = await bot.getFile(video.file_id);
+
+              await user.update({
+                video: fileInfo.file_path,
+              });
+
+              await bot.downloadFile(video.file_id, "./videos");
+              await getProfile(bot, chatId, user);
+              await sendMsgWithKeyboard(
+                bot,
+                chatId,
+                `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                menuKeyboard
+              );
             }
           }
-        );
+        });
         break;
       case "3.Описание":
         const infoQ = await bot.sendMessage(
