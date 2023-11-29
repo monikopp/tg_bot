@@ -318,8 +318,7 @@ bot.on("message", async (msg) => {
 
           if (find.rows.length === 0) {
             await bot.sendMessage(chatId, "Новых анкет пока нет");
-          }
-          if (find.rows.length) {
+          } else {
             prevUser = await getOtherProfile(
               bot,
               chatId,
@@ -328,6 +327,8 @@ bot.on("message", async (msg) => {
             );
             find.rows.splice(0, 1);
           }
+        } else {
+          await bot.sendMessage(chatId, "Новых анкет пока нет(");
         }
 
         break;
