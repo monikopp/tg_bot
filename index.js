@@ -1,4 +1,6 @@
 require("dotenv").config();
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
 const TelegramBot = require("node-telegram-bot-api");
 const { Op } = require("sequelize");
 const {
@@ -125,6 +127,9 @@ bot.on("message", async (msg) => {
                                   photo[2].file_id,
                                   "./photos"
                                 );
+                                await supabase.storage
+                                  .from("photos")
+                                  .upload(fileInfo.file_path, photo[2]);
 
                                 await getProfile(bot, chatId, user);
                                 await sendMsgWithKeyboard(
@@ -159,6 +164,9 @@ bot.on("message", async (msg) => {
                                         video.file_id,
                                         "./videos"
                                       );
+                                      await supabase.storage
+                                        .from("videos")
+                                        .upload(fileInfo.file_path, video);
                                       await getProfile(bot, chatId, user);
                                       await sendMsgWithKeyboard(
                                         bot,
@@ -458,7 +466,10 @@ bot.on("message", async (msg) => {
                   photo: fileInfo.file_path,
                 });
                 await bot.downloadFile(photo[2].file_id, "./photos");
-
+                const supPhoto = await supabase.storage
+                  .from("photos")
+                  .upload(fileInfo.file_path, photo[2]);
+                await bot.sendMessage(chatId, `${supPhoto}`);
                 await getProfile(bot, chatId, user);
                 await sendMsgWithKeyboard(
                   bot,
@@ -487,6 +498,9 @@ bot.on("message", async (msg) => {
                       });
 
                       await bot.downloadFile(video.file_id, "./videos");
+                      await supabase.storage
+                        .from("videos")
+                        .upload(fileInfo.file_path, video);
                       await getProfile(bot, chatId, user);
                       await sendMsgWithKeyboard(
                         bot,
@@ -504,6 +518,9 @@ bot.on("message", async (msg) => {
                   });
 
                   await bot.downloadFile(video.file_id, "./videos");
+                  await supabase.storage
+                    .from("videos")
+                    .upload(fileInfo.file_path, video[2]);
                   await getProfile(bot, chatId, user);
                   await sendMsgWithKeyboard(
                     bot,
