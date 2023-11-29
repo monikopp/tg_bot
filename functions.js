@@ -39,6 +39,7 @@ function openKeyboard(keyboard) {
       force_reply: true,
       keyboard: keyboard,
       resize_keyboard: true,
+      one_time_keyboard: true,
     },
   };
 
