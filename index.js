@@ -369,6 +369,7 @@ bot.on("message", async (msg) => {
         bot.onReplyToMessage(chatId, photoQ.message_id, async (photoAnswer) => {
           if (photoAnswer.photo) {
             const photo = photoAnswer.photo;
+            await user.update({ video: null });
             const fileInfo = await bot.getFile(photo[2].file_id);
             await user.update({
               photo: fileInfo.file_path,
@@ -394,7 +395,7 @@ bot.on("message", async (msg) => {
               bot.onReplyToMessage(chatId, prompt.message_id, async (ans) => {
                 const video = photoAnswer.video;
                 const fileInfo = await bot.getFile(video.file_id);
-
+                await user.update({ photo: null });
                 await user.update({
                   video: fileInfo.file_path,
                 });
@@ -410,7 +411,7 @@ bot.on("message", async (msg) => {
               });
             } else {
               const fileInfo = await bot.getFile(video.file_id);
-
+              await user.update({ photo: null });
               await user.update({
                 video: fileInfo.file_path,
               });
