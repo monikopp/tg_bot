@@ -471,7 +471,7 @@ bot.on("message", async (msg) => {
                   .upload(fileInfo.file_path, photo[2]);
                 await bot.sendMessage(
                   chatId,
-                  `${supPhoto}`,
+                  `${JSON.stringify(supPhoto)}`,
                   console.log(JSON.stringify(supPhoto))
                 );
                 await getProfile(bot, chatId, user);
