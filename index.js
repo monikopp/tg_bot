@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { createClient } from "@supabase/supabase-js";
+const { createClient } = require("@supabase/supabase-js");
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
 const TelegramBot = require("node-telegram-bot-api");
 const { Op } = require("sequelize");
