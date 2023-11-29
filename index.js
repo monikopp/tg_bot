@@ -318,7 +318,8 @@ bot.on("message", async (msg) => {
 
           if (find.rows.length === 0) {
             await bot.sendMessage(chatId, "Новых анкет пока нет");
-          } else {
+          }
+          if (find.rows.length > 0) {
             prevUser = await getOtherProfile(
               bot,
               chatId,
