@@ -465,7 +465,7 @@ bot.on("message", async (msg) => {
                 await user.update({
                   photo: fileInfo.file_path,
                 });
-                await bot.downloadFile(photo[2].file_id, "./photos");
+                // await bot.downloadFile(photo[2].file_id, "./photos");
                 const supPhoto = await supabase.storage
                   .from("photos")
                   .upload(fileInfo.file_path, photo[2]);
