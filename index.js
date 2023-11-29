@@ -326,8 +326,8 @@ bot.on("message", async (msg) => {
               showingUser,
               likeKeyboard
             );
+            find.rows.splice(0, 1);
           }
-          find.rows.splice(0, 1);
         }
 
         break;
