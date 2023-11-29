@@ -316,6 +316,9 @@ bot.on("message", async (msg) => {
             }
           }
 
+          if (find.rows.length === 0) {
+            await bot.sendMessage(chatId, "Новых анкет пока нет");
+          }
           if (find.rows.length) {
             prevUser = await getOtherProfile(
               bot,
@@ -324,12 +327,9 @@ bot.on("message", async (msg) => {
               likeKeyboard
             );
           }
+          find.rows.splice(0, 1);
         }
 
-        if (find.rows.length === 0) {
-          await bot.sendMessage(chatId, "Новых анкет пока нет");
-        }
-        find.rows.splice(0, 1);
         break;
       case "4.Закрыть меню":
         bot.sendMessage(chatId, "Меню закрыто", {
