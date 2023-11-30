@@ -39,7 +39,7 @@ bot.on("message", async (msg) => {
     if (msg.from.username === undefined) {
       await bot.sendMessage(
         chatId,
-        "Необходимо имя пользователя чтобы зарегестрироваться"
+        "Необходимо имя пользователя чтобы использовать бота"
       );
     } else {
       const existingUser = await User.findOne({
