@@ -460,15 +460,17 @@ bot.on("message", async (msg) => {
             async (photoAnswer) => {
               if (photoAnswer.photo) {
                 const photo = photoAnswer.photo;
+                console.log(photo);
                 await user.update({ video: null });
                 const fileInfo = await bot.getFile(photo[2].file_id);
+                console.log(fileInfo);
                 await user.update({
                   photo: fileInfo.file_path,
                 });
                 // await bot.downloadFile(photo[2].file_id, "./photos");
                 const supPhoto = await supabase.storage
                   .from("photos")
-                  .upload(fileInfo.file_path, photo[2]);
+                  .upload(fileInfo.file_path, photo[2], { upsert: true });
                 await bot.sendMessage(
                   chatId,
                   `${JSON.stringify(supPhoto)}`,
