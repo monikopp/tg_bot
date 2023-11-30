@@ -296,7 +296,12 @@ bot.on("message", async (msg) => {
         });
       } else {
         try {
-          await getProfile(bot, chatId, existingUser);
+          const { data } = supabase.storage
+            .from("pfp")
+            .getPublicUrl(
+              existingUser.video ? existingUser.video : existingUser.photo
+            );
+          await getProfile(bot, chatId, existingUser, data.publicUrl);
           await sendMsgWithKeyboard(
             bot,
             chatId,
@@ -382,7 +387,10 @@ bot.on("message", async (msg) => {
     switch (text) {
       case "1.Смотреть свою анкету":
         try {
-          await getProfile(bot, chatId, user);
+          const { data } = supabase.storage
+            .from("pfp")
+            .getPublicUrl(user.video ? user.video : user.photo);
+          await getProfile(bot, chatId, user, data.publicUrl);
           await sendMsgWithKeyboard(
             bot,
             chatId,
@@ -484,7 +492,10 @@ bot.on("message", async (msg) => {
             first_name = msg.text;
 
             await user.update({ first_name: first_name });
-            await getProfile(bot, chatId, user);
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(user.video ? user.video : user.photo);
+            await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
@@ -652,7 +663,10 @@ bot.on("message", async (msg) => {
           bot.onReplyToMessage(chatId, infoQ.message_id, async (infoA) => {
             const info = infoA.text;
             await user.update({ info: info });
-            await getProfile(bot, chatId, user);
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(user.video ? user.video : user.photo);
+            await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
@@ -678,7 +692,10 @@ bot.on("message", async (msg) => {
           bot.onReplyToMessage(chatId, langQ.message_id, async (langA) => {
             const lang = langA.text;
             await user.update({ lang_code: lang });
-            await getProfile(bot, chatId, user);
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(user.video ? user.video : user.photo);
+            await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
@@ -704,7 +721,10 @@ bot.on("message", async (msg) => {
           bot.onReplyToMessage(chatId, ageQ.message_id, async (ageA) => {
             const age = ageA.text;
             await user.update({ age: age });
-            await getProfile(bot, chatId, user);
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(user.video ? user.video : user.photo);
+            await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
@@ -730,7 +750,10 @@ bot.on("message", async (msg) => {
           bot.onReplyToMessage(chatId, sexQ.message_id, async (sexA) => {
             const sex = sexA.text;
             await user.update({ sex: sex });
-            await getProfile(bot, chatId, user);
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(user.video ? user.video : user.photo);
+            await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
