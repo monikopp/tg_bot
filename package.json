@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./index.js &&  db:migrate",
+    "start": "nodemon ./index.js",
     "prep-db": "npx sequelize db:drop && npx sequelize db:create && npx sequelize db:migrate && npx sequelize db:seed:all"
   },
   "keywords": [],
@@ -21,6 +21,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2",
     "node-telegram-bot-api": "^0.64.0",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",

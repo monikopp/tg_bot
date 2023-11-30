@@ -8,17 +8,17 @@ async function sendMsgWithKeyboard(bot, chatId, text, keyboard) {
   });
   return board;
 }
-async function getProfile(bot, chatId, user) {
+async function getProfile(bot, chatId, user, imgUrl) {
   const uProfile = {
     caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
     parse_mode: "markdown",
   };
   await bot.sendMessage(chatId, "Вот твоя анкета:");
   if (user.photo === null) {
-    const res = await bot.sendVideo(chatId, user.video, uProfile);
+    const res = await bot.sendVideo(chatId, imgUrl, uProfile);
     return res;
   } else {
-    const res = await bot.sendPhoto(chatId, `photos/${user.photo}`, uProfile);
+    const res = await bot.sendPhoto(chatId, imgUrl, uProfile);
     return res;
   }
   // await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));

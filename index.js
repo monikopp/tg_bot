@@ -3,6 +3,7 @@ const { createClient } = require("@supabase/supabase-js");
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
 const TelegramBot = require("node-telegram-bot-api");
 const { Op } = require("sequelize");
+const fs = require("fs");
 const {
   commands,
   commandsForNew,
@@ -117,21 +118,48 @@ bot.on("message", async (msg) => {
                             async (photoAnswer) => {
                               if (photoAnswer.photo) {
                                 const photo = photoAnswer.photo;
+
+                                await user.update({ video: null });
                                 const fileInfo = await bot.getFile(
                                   photo[2].file_id
                                 );
-                                await user.update({
-                                  photo: fileInfo.file_path,
-                                });
-                                const pfp = await bot.downloadFile(
-                                  photo[2].file_id,
-                                  "./photos"
+                                const link = await bot.getFileLink(
+                                  photo[2].file_id
                                 );
-                                await supabase.storage
-                                  .from("photos")
-                                  .upload(fileInfo.file_path, photo[2]);
+                                const res = await fetch(link);
+                                const fileBuffer = await res.arrayBuffer();
 
-                                await getProfile(bot, chatId, user);
+                                const blob = new Blob([fileBuffer], {
+                                  type: "image/jpeg",
+                                });
+
+                                const supPhoto = await supabase.storage
+                                  .from("pfp")
+                                  .upload(
+                                    `photos/${fileInfo.file_unique_id}`,
+                                    blob,
+                                    {
+                                      upsert: true,
+                                    }
+                                  );
+                                await user.update({
+                                  photo: `photos/${fileInfo.file_unique_id}`,
+                                });
+
+                                const { data } = supabase.storage
+                                  .from("pfp")
+                                  .getPublicUrl(user.photo);
+
+                                try {
+                                  await getProfile(
+                                    bot,
+                                    chatId,
+                                    user,
+                                    data.publicUrl
+                                  );
+                                } catch (e) {
+                                  console.log(e.stack);
+                                }
                                 await sendMsgWithKeyboard(
                                   bot,
                                   chatId,
@@ -151,23 +179,51 @@ bot.on("message", async (msg) => {
                                     chatId,
                                     prompt.message_id,
                                     async (ans) => {
-                                      const video = photoAnswer.video;
+                                      const video = ans.video;
+
                                       const fileInfo = await bot.getFile(
                                         video.file_id
                                       );
+                                      await user.update({ photo: null });
 
-                                      await user.update({
-                                        video: fileInfo.file_path,
+                                      const link = await bot.getFileLink(
+                                        video.file_id
+                                      );
+                                      const res = await fetch(link);
+                                      const fileBuffer =
+                                        await res.arrayBuffer();
+
+                                      const blob = new Blob([fileBuffer], {
+                                        type: "video/mp4",
                                       });
 
-                                      await bot.downloadFile(
-                                        video.file_id,
-                                        "./videos"
-                                      );
-                                      await supabase.storage
-                                        .from("videos")
-                                        .upload(fileInfo.file_path, video);
-                                      await getProfile(bot, chatId, user);
+                                      const supPhoto = await supabase.storage
+                                        .from("pfp")
+                                        .upload(
+                                          `videos/${fileInfo.file_unique_id}`,
+                                          blob,
+                                          {
+                                            upsert: true,
+                                          }
+                                        );
+                                      await user.update({
+                                        video: `videos/${fileInfo.file_unique_id}`,
+                                      });
+
+                                      const { data } = supabase.storage
+                                        .from("pfp")
+                                        .getPublicUrl(user.video);
+
+                                      try {
+                                        await getProfile(
+                                          bot,
+                                          chatId,
+                                          user,
+                                          data.publicUrl
+                                        );
+                                      } catch (e) {
+                                        console.log(e.stack);
+                                      }
                                       await sendMsgWithKeyboard(
                                         bot,
                                         chatId,
@@ -180,16 +236,45 @@ bot.on("message", async (msg) => {
                                   const fileInfo = await bot.getFile(
                                     video.file_id
                                   );
+                                  await user.update({ photo: null });
 
-                                  await user.update({
-                                    video: fileInfo.file_path,
+                                  const link = await bot.getFileLink(
+                                    video.file_id
+                                  );
+                                  const res = await fetch(link);
+                                  const fileBuffer = await res.arrayBuffer();
+
+                                  const blob = new Blob([fileBuffer], {
+                                    type: "video/mp4",
                                   });
 
-                                  await bot.downloadFile(
-                                    video.file_id,
-                                    "./videos"
-                                  );
-                                  await getProfile(bot, chatId, user);
+                                  const supPhoto = await supabase.storage
+                                    .from("pfp")
+                                    .upload(
+                                      `videos/${fileInfo.file_unique_id}`,
+                                      blob,
+                                      {
+                                        upsert: true,
+                                      }
+                                    );
+                                  await user.update({
+                                    video: `videos/${fileInfo.file_unique_id}`,
+                                  });
+
+                                  const { data } = supabase.storage
+                                    .from("pfp")
+                                    .getPublicUrl(user.video);
+
+                                  try {
+                                    await getProfile(
+                                      bot,
+                                      chatId,
+                                      user,
+                                      data.publicUrl
+                                    );
+                                  } catch (e) {
+                                    console.log(e.stack);
+                                  }
                                   await sendMsgWithKeyboard(
                                     bot,
                                     chatId,
@@ -219,11 +304,7 @@ bot.on("message", async (msg) => {
             menuKeyboard
           );
         } catch (e) {
-          return bot.sendMessage(
-            chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
-          );
+          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
         }
       }
     }
@@ -232,11 +313,7 @@ bot.on("message", async (msg) => {
       try {
         await sendMsgWithKeyboard(bot, chatId, "Меню бота:", menuKeyboard);
       } catch (e) {
-        return bot.sendMessage(
-          chatId,
-          `Проблемка тут: ${e.stack}`,
-          console.log(e, e.stack)
-        );
+        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
     if (text === "/menu" && existingUser === null) {
@@ -246,11 +323,7 @@ bot.on("message", async (msg) => {
           `Сначала придется зарегистрироваться :)\nВведи /start чтобы создать анкету`
         );
       } catch (e) {
-        return bot.sendMessage(
-          chatId,
-          `Проблемка тут: ${e.stack}`,
-          console.log(e, e.stack)
-        );
+        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
     if (text === "👎") {
@@ -269,11 +342,7 @@ bot.on("message", async (msg) => {
           await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
         }
       } catch (e) {
-        return bot.sendMessage(
-          chatId,
-          `Проблемка тут: ${e.stack}`,
-          console.log(e, e.stack)
-        );
+        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
     if (text === "❤️") {
@@ -306,11 +375,7 @@ bot.on("message", async (msg) => {
           await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
         }
       } catch (e) {
-        return bot.sendMessage(
-          chatId,
-          `Проблемка тут: ${e.stack}`,
-          console.log(e, e.stack)
-        );
+        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
 
@@ -327,8 +392,8 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
+            `Проблемка тут}`,
+            console.log(e.stack)
           );
         }
         break;
@@ -341,11 +406,7 @@ bot.on("message", async (msg) => {
             editProfileKeyboard
           );
         } catch (e) {
-          return bot.sendMessage(
-            chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
-          );
+          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
         }
         break;
       case "3.Смотреть другие анкеты":
@@ -394,11 +455,7 @@ bot.on("message", async (msg) => {
             await bot.sendMessage(chatId, "Новых анкет пока нет(");
           }
         } catch (e) {
-          return bot.sendMessage(
-            chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
-          );
+          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
         }
 
         break;
@@ -410,11 +467,7 @@ bot.on("message", async (msg) => {
             },
           });
         } catch (e) {
-          return bot.sendMessage(
-            chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
-          );
+          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
         }
         break;
     }
@@ -440,11 +493,7 @@ bot.on("message", async (msg) => {
             );
           });
         } catch (e) {
-          return bot.sendMessage(
-            chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
-          );
+          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
         }
         break;
       case "2.Фото/Видео":
@@ -460,25 +509,33 @@ bot.on("message", async (msg) => {
             async (photoAnswer) => {
               if (photoAnswer.photo) {
                 const photo = photoAnswer.photo;
-                console.log(photo);
                 await user.update({ video: null });
                 const fileInfo = await bot.getFile(photo[2].file_id);
-                console.log(fileInfo);
-                await user.update({
-                  photo: fileInfo.file_path,
-                });
-                // await bot.downloadFile(photo[2].file_id, "./photos");
+                const link = await bot.getFileLink(photo[2].file_id);
+
+                const res = await fetch(link);
+                const fileBuffer = await res.arrayBuffer();
+                const blob = new Blob([fileBuffer], { type: "image/jpeg" });
+
                 const supPhoto = await supabase.storage
-                  .from("photos")
-                  .upload(fileInfo.file_path, photo[2], { upsert: true });
-                const buck = await supabase.storage.getBucket("photos");
-                console.log(buck);
-                await bot.sendMessage(
-                  chatId,
-                  `${JSON.stringify(supPhoto)}`,
-                  console.log(JSON.stringify(supPhoto))
-                );
-                await getProfile(bot, chatId, user);
+                  .from("pfp")
+                  .upload(`photos/${fileInfo.file_unique_id}`, blob, {
+                    upsert: true,
+                  });
+
+                await user.update({
+                  photo: `photos/${fileInfo.file_unique_id}`,
+                });
+
+                const { data } = supabase.storage
+                  .from("pfp")
+                  .getPublicUrl(user.photo);
+
+                try {
+                  await getProfile(bot, chatId, user, data.publicUrl);
+                } catch (e) {
+                  console.log(e.stack);
+                }
                 await sendMsgWithKeyboard(
                   bot,
                   chatId,
@@ -498,18 +555,37 @@ bot.on("message", async (msg) => {
                     chatId,
                     prompt.message_id,
                     async (ans) => {
-                      const video = photoAnswer.video;
+                      const video = ans.video;
                       const fileInfo = await bot.getFile(video.file_id);
+
                       await user.update({ photo: null });
-                      await user.update({
-                        video: fileInfo.file_path,
+
+                      const link = await bot.getFileLink(video.file_id);
+                      const res = await fetch(link);
+                      const fileBuffer = await res.arrayBuffer();
+
+                      const blob = new Blob([fileBuffer], {
+                        type: "video/mp4",
                       });
 
-                      await bot.downloadFile(video.file_id, "./videos");
-                      await supabase.storage
-                        .from("videos")
-                        .upload(fileInfo.file_path, video);
-                      await getProfile(bot, chatId, user);
+                      const supPhoto = await supabase.storage
+                        .from("pfp")
+                        .upload(`videos/${fileInfo.file_unique_id}`, blob, {
+                          upsert: true,
+                        });
+                      await user.update({
+                        video: `videos/${fileInfo.file_unique_id}`,
+                      });
+
+                      const { data } = supabase.storage
+                        .from("pfp")
+                        .getPublicUrl(user.video);
+
+                      try {
+                        await getProfile(bot, chatId, user, data.publicUrl);
+                      } catch (e) {
+                        console.log(e.stack);
+                      }
                       await sendMsgWithKeyboard(
                         bot,
                         chatId,
@@ -521,15 +597,33 @@ bot.on("message", async (msg) => {
                 } else {
                   const fileInfo = await bot.getFile(video.file_id);
                   await user.update({ photo: null });
-                  await user.update({
-                    video: fileInfo.file_path,
+
+                  const link = await bot.getFileLink(video.file_id);
+                  const res = await fetch(link);
+                  const fileBuffer = await res.arrayBuffer();
+
+                  const blob = new Blob([fileBuffer], {
+                    type: "video/mp4",
                   });
 
-                  await bot.downloadFile(video.file_id, "./videos");
-                  await supabase.storage
-                    .from("videos")
-                    .upload(fileInfo.file_path, video[2]);
-                  await getProfile(bot, chatId, user);
+                  const supPhoto = await supabase.storage
+                    .from("pfp")
+                    .upload(`videos/${fileInfo.file_unique_id}`, blob, {
+                      upsert: true,
+                    });
+                  await user.update({
+                    video: `videos/${fileInfo.file_unique_id}`,
+                  });
+
+                  const { data } = supabase.storage
+                    .from("pfp")
+                    .getPublicUrl(user.video);
+
+                  try {
+                    await getProfile(bot, chatId, user, data.publicUrl);
+                  } catch (e) {
+                    console.log(e.stack);
+                  }
                   await sendMsgWithKeyboard(
                     bot,
                     chatId,
@@ -543,7 +637,7 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
+            `Проблемка тут`,
             console.log(e, e.stack)
           );
         }
@@ -569,8 +663,8 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
-            console.log(e, e.stack)
+            `Проблемка тут}`,
+            console.log(e.stack)
           );
         }
         break;
@@ -595,7 +689,7 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
+            `Проблемка тут`,
             console.log(e, e.stack)
           );
         }
@@ -621,7 +715,7 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
+            `Проблемка тут`,
             console.log(e, e.stack)
           );
         }
@@ -647,7 +741,7 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
+            `Проблемка тут`,
             console.log(e, e.stack)
           );
         }
@@ -664,7 +758,7 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут: ${e.stack}`,
+            `Проблемка тут`,
             console.log(e, e.stack)
           );
         }
