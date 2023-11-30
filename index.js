@@ -455,7 +455,6 @@ bot.on("message", async (msg) => {
           });
 
           if (find.count > 0) {
-            showingUser = find.rows[0];
             const alreadyLiked = await Like.findAll({
               where: { senderId: user.id },
               as: "Sender",
@@ -472,6 +471,7 @@ bot.on("message", async (msg) => {
             if (find.rows.length === 0) {
               await bot.sendMessage(chatId, "Новых анкет пока нет");
             } else {
+              showingUser = find.rows[0];
               const { data } = supabase.storage
                 .from("pfp")
                 .getPublicUrl(
