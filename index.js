@@ -7,11 +7,9 @@ const fs = require("fs");
 const {
   commands,
   commandsForNew,
-
   menuKeyboard,
   editProfileKeyboard,
   like,
-
   likeKeyboard,
 } = require("./const");
 const {
@@ -331,14 +329,14 @@ bot.on("message", async (msg) => {
       }
     }
     const user = await User.findOne({ where: { username: msg.from.username } });
-    if (text === "/menu" && existingUser !== null) {
+    if (text === "/menu" && user !== null) {
       try {
         await sendMsgWithKeyboard(bot, chatId, "Меню бота:", menuKeyboard);
       } catch (e) {
         return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
-    if (text === "/menu" && existingUser === null) {
+    if (text === "/menu" && user === null) {
       try {
         await bot.sendMessage(
           chatId,
