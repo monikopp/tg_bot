@@ -18,7 +18,7 @@ async function getProfile(bot, chatId, user) {
     const res = await bot.sendVideo(chatId, user.video, uProfile);
     return res;
   } else {
-    const res = await bot.sendPhoto(chatId, user.photo, uProfile);
+    const res = await bot.sendPhoto(chatId, `photos/${user.photo}`, uProfile);
     return res;
   }
   // await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
@@ -39,6 +39,7 @@ function openKeyboard(keyboard) {
       force_reply: true,
       keyboard: keyboard,
       resize_keyboard: true,
+      one_time_keyboard: true,
     },
   };
 
