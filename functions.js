@@ -24,13 +24,19 @@ async function getProfile(bot, chatId, user, imgUrl) {
   // await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
 }
 
-async function getOtherProfile(bot, chatId, user, keyboard) {
+async function getOtherProfile(bot, chatId, user, keyboard, url) {
   const uProfile = {
     caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
     parse_mode: "markdown",
   };
   await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
-  const res = await bot.sendPhoto(chatId, user.photo, uProfile);
+  if (user.photo === null) {
+    const res = await bot.sendVideo(chatId, url, uProfile);
+    return res;
+  } else {
+    const res = await bot.sendPhoto(chatId, url, uProfile);
+    return res;
+  }
   return res;
 }
 function openKeyboard(keyboard) {

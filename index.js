@@ -341,7 +341,19 @@ bot.on("message", async (msg) => {
 
         if (find.rows.length) {
           showingUser = find.rows[0];
-          prevUser = getOtherProfile(bot, chatId, showingUser, likeKeyboard);
+          const { data } = supabase.storage
+            .from("pfp")
+            .getPublicUrl(
+              showingUser.video ? showingUser.video : showingUser.photo
+            );
+
+          prevUser = getOtherProfile(
+            bot,
+            chatId,
+            showingUser,
+            likeKeyboard,
+            data.publicUrl
+          );
           find.rows.splice(0, 1);
         } else {
           await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
@@ -374,7 +386,19 @@ bot.on("message", async (msg) => {
         }
         if (find.rows.length) {
           showingUser = find.rows[0];
-          prevUser = getOtherProfile(bot, chatId, showingUser, likeKeyboard);
+          const { data } = supabase.storage
+            .from("pfp")
+            .getPublicUrl(
+              showingUser.video ? showingUser.video : showingUser.photo
+            );
+
+          prevUser = getOtherProfile(
+            bot,
+            chatId,
+            showingUser,
+            likeKeyboard,
+            data.publicUrl
+          );
           find.rows.splice(0, 1);
         } else {
           await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
@@ -448,11 +472,18 @@ bot.on("message", async (msg) => {
             if (find.rows.length === 0) {
               await bot.sendMessage(chatId, "Новых анкет пока нет");
             } else {
-              prevUser = await getOtherProfile(
+              const { data } = supabase.storage
+                .from("pfp")
+                .getPublicUrl(
+                  showingUser.video ? showingUser.video : showingUser.photo
+                );
+
+              prevUser = getOtherProfile(
                 bot,
                 chatId,
                 showingUser,
-                likeKeyboard
+                likeKeyboard,
+                data.publicUrl
               );
               find.rows.splice(0, 1);
             }
