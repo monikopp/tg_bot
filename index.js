@@ -7,11 +7,11 @@ const fs = require("fs");
 const {
   commands,
   commandsForNew,
-  // opts,
+
   menuKeyboard,
   editProfileKeyboard,
   like,
-  langKeyboard,
+
   likeKeyboard,
 } = require("./const");
 const {
