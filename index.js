@@ -346,7 +346,7 @@ bot.on("message", async (msg) => {
         return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
-    if (text === "👎") {
+    if (text === "2.👎") {
       try {
         await Like.create({
           senderId: user.id,
@@ -377,7 +377,7 @@ bot.on("message", async (msg) => {
         return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
       }
     }
-    if (text === "❤️") {
+    if (text === "1.❤️") {
       try {
         await Like.create({
           senderId: user.id,

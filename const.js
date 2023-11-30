@@ -6,12 +6,12 @@ const commandsForNew = [{ command: "/start", description: "Запустить б
 const like = {
   reply_markup: JSON.stringify({
     inline_keyboard: [
-      [{ text: "❤️", callback_data: "like" }],
-      [{ text: "👎", callback_data: "dislike" }],
+      [{ text: "1.❤️", callback_data: "like" }],
+      [{ text: "2.👎", callback_data: "dislike" }],
     ],
   }),
 };
-const likeKeyboard = [["❤️", "👎"]];
+const likeKeyboard = [["1.❤️", "2.👎"]];
 const menuKeyboard = [
   ["1.Смотреть свою анкету", "2.Изменить анкету"],
   ["3.Смотреть другие анкеты", "4.Закрыть меню"],
