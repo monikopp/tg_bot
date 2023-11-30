@@ -66,7 +66,7 @@ bot.on("message", async (msg) => {
                 chat_id: chatId,
                 first_name: name,
               });
-              // await user.update({ first_name: name });
+
               const ageQuestion = await bot.sendMessage(
                 chatId,
                 "Сколько тебе лет?",
