@@ -128,10 +128,10 @@ bot.on("message", async (msg) => {
 
                                     await user.update({ video: null });
                                     const fileInfo = await bot.getFile(
-                                      photo[2].file_id
+                                      photo[photo.length - 1].file_id
                                     );
                                     const link = await bot.getFileLink(
-                                      photo[2].file_id
+                                      photo[photo.length - 1].file_id
                                     );
                                     const res = await fetch(link);
                                     const fileBuffer = await res.arrayBuffer();
@@ -567,8 +567,12 @@ bot.on("message", async (msg) => {
               if (photoAnswer.photo) {
                 const photo = photoAnswer.photo;
                 await user.update({ video: null });
-                const fileInfo = await bot.getFile(photo[2].file_id);
-                const link = await bot.getFileLink(photo[2].file_id);
+                const fileInfo = await bot.getFile(
+                  photo[photo.length - 1].file_id
+                );
+                const link = await bot.getFileLink(
+                  photo[photo.length - 1].file_id
+                );
 
                 const res = await fetch(link);
                 const fileBuffer = await res.arrayBuffer();
