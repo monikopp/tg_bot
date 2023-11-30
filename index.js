@@ -471,7 +471,7 @@ bot.on("message", async (msg) => {
                 const supPhoto = await supabase.storage
                   .from("photos")
                   .upload(fileInfo.file_path, photo[2], { upsert: true });
-                console.log(supabase.storage);
+                console.log(supabase.storage.from("photos"));
                 await bot.sendMessage(
                   chatId,
                   `${JSON.stringify(supPhoto)}`,
