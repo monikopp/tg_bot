@@ -36,151 +36,213 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
   try {
-    const existingUser = await User.findOne({
-      where: { username: msg.from.username },
-    });
+    if (msg.from.username === undefined) {
+      await bot.sendMessage(
+        chatId,
+        "Необходимо имя пользователя чтобы зарегестрироваться"
+      );
+    } else {
+      const existingUser = await User.findOne({
+        where: { username: msg.from.username },
+      });
 
-    if (text === "/start") {
-      if (existingUser === null) {
-        let user;
+      if (text === "/start") {
+        if (existingUser === null) {
+          let user;
 
-        const namePrompt = await bot.sendMessage(
-          chatId,
-          `Привет👋🏻, как тебя зовут? `,
-          forceReply()
-        );
-
-        bot.onReplyToMessage(chatId, namePrompt.message_id, async (nameMsg) => {
-          const name = nameMsg.text;
-          user = await User.create({
-            username: msg.chat.username,
-            chat_id: chatId,
-            first_name: name,
-          });
-          // await user.update({ first_name: name });
-          const ageQuestion = await bot.sendMessage(
+          const namePrompt = await bot.sendMessage(
             chatId,
-            "Сколько тебе лет?",
+            `Привет👋🏻, как тебя зовут? `,
             forceReply()
           );
+
           bot.onReplyToMessage(
             chatId,
-            ageQuestion.message_id,
-            async (ageAnswer) => {
-              const age = ageAnswer.text;
-              await user.update({ age: age });
-              const sexQuestion = await bot.sendMessage(
+            namePrompt.message_id,
+            async (nameMsg) => {
+              const name = nameMsg.text;
+              user = await User.create({
+                username: msg.chat.username,
+                chat_id: chatId,
+                first_name: name,
+              });
+              // await user.update({ first_name: name });
+              const ageQuestion = await bot.sendMessage(
                 chatId,
-                "Твой пол?(Парень/Девушка)",
+                "Сколько тебе лет?",
                 forceReply()
               );
-
               bot.onReplyToMessage(
                 chatId,
-                sexQuestion.message_id,
-                async (sexAnswer) => {
-                  const sex = sexAnswer.text;
-                  await user.update({ sex: sex });
-
-                  const lagQuestion = await bot.sendMessage(
+                ageQuestion.message_id,
+                async (ageAnswer) => {
+                  const age = ageAnswer.text;
+                  await user.update({ age: age });
+                  const sexQuestion = await bot.sendMessage(
                     chatId,
-                    `Какой язык изучаешь? `,
+                    "Твой пол?(Парень/Девушка)",
                     forceReply()
                   );
 
                   bot.onReplyToMessage(
                     chatId,
-                    lagQuestion.message_id,
-                    async (langAnswer) => {
-                      const lang = langAnswer.text;
+                    sexQuestion.message_id,
+                    async (sexAnswer) => {
+                      const sex = sexAnswer.text;
+                      await user.update({ sex: sex });
 
-                      await user.update({ lang_code: lang });
-                      await bot.sendMessage(chatId, ` ${lang}, круто!`);
-                      const infoQuestion = await bot.sendMessage(
+                      const lagQuestion = await bot.sendMessage(
                         chatId,
-                        "Добавь описание к своей анкете:",
+                        `Какой язык изучаешь? `,
                         forceReply()
                       );
+
                       bot.onReplyToMessage(
                         chatId,
-                        infoQuestion.message_id,
-                        async (infoAnswer) => {
-                          const info = infoAnswer.text;
-                          await user.update({ info: info });
-                          const photoQuestion = await bot.sendMessage(
+                        lagQuestion.message_id,
+                        async (langAnswer) => {
+                          const lang = langAnswer.text;
+
+                          await user.update({ lang_code: lang });
+                          await bot.sendMessage(chatId, ` ${lang}, круто!`);
+                          const infoQuestion = await bot.sendMessage(
                             chatId,
-                            "Отправь фото/видео(не более 15 секунд!)",
+                            "Добавь описание к своей анкете:",
                             forceReply()
                           );
                           bot.onReplyToMessage(
                             chatId,
-                            photoQuestion.message_id,
-                            async (photoAnswer) => {
-                              if (photoAnswer.photo) {
-                                const photo = photoAnswer.photo;
+                            infoQuestion.message_id,
+                            async (infoAnswer) => {
+                              const info = infoAnswer.text;
+                              await user.update({ info: info });
+                              const photoQuestion = await bot.sendMessage(
+                                chatId,
+                                "Отправь фото/видео(не более 15 секунд!)",
+                                forceReply()
+                              );
+                              bot.onReplyToMessage(
+                                chatId,
+                                photoQuestion.message_id,
+                                async (photoAnswer) => {
+                                  if (photoAnswer.photo) {
+                                    const photo = photoAnswer.photo;
 
-                                await user.update({ video: null });
-                                const fileInfo = await bot.getFile(
-                                  photo[2].file_id
-                                );
-                                const link = await bot.getFileLink(
-                                  photo[2].file_id
-                                );
-                                const res = await fetch(link);
-                                const fileBuffer = await res.arrayBuffer();
+                                    await user.update({ video: null });
+                                    const fileInfo = await bot.getFile(
+                                      photo[2].file_id
+                                    );
+                                    const link = await bot.getFileLink(
+                                      photo[2].file_id
+                                    );
+                                    const res = await fetch(link);
+                                    const fileBuffer = await res.arrayBuffer();
 
-                                const blob = new Blob([fileBuffer], {
-                                  type: "image/jpeg",
-                                });
+                                    const blob = new Blob([fileBuffer], {
+                                      type: "image/jpeg",
+                                    });
 
-                                const supPhoto = await supabase.storage
-                                  .from("pfp")
-                                  .upload(
-                                    `photos/${fileInfo.file_unique_id}`,
-                                    blob,
-                                    {
-                                      upsert: true,
+                                    const supPhoto = await supabase.storage
+                                      .from("pfp")
+                                      .upload(
+                                        `photos/${fileInfo.file_unique_id}`,
+                                        blob,
+                                        {
+                                          upsert: true,
+                                        }
+                                      );
+                                    await user.update({
+                                      photo: `photos/${fileInfo.file_unique_id}`,
+                                    });
+
+                                    const { data } = supabase.storage
+                                      .from("pfp")
+                                      .getPublicUrl(user.photo);
+
+                                    try {
+                                      await getProfile(
+                                        bot,
+                                        chatId,
+                                        user,
+                                        data.publicUrl
+                                      );
+                                    } catch (e) {
+                                      console.log(e.stack);
                                     }
-                                  );
-                                await user.update({
-                                  photo: `photos/${fileInfo.file_unique_id}`,
-                                });
+                                    await sendMsgWithKeyboard(
+                                      bot,
+                                      chatId,
+                                      `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                      menuKeyboard
+                                    );
+                                  }
+                                  if (photoAnswer.video) {
+                                    const video = photoAnswer.video;
+                                    if (video.duration > 16) {
+                                      const prompt = await bot.sendMessage(
+                                        chatId,
+                                        "Видео должно быть меньше 15 секунд!",
+                                        forceReply()
+                                      );
+                                      bot.onReplyToMessage(
+                                        chatId,
+                                        prompt.message_id,
+                                        async (ans) => {
+                                          const video = ans.video;
 
-                                const { data } = supabase.storage
-                                  .from("pfp")
-                                  .getPublicUrl(user.photo);
+                                          const fileInfo = await bot.getFile(
+                                            video.file_id
+                                          );
+                                          await user.update({ photo: null });
 
-                                try {
-                                  await getProfile(
-                                    bot,
-                                    chatId,
-                                    user,
-                                    data.publicUrl
-                                  );
-                                } catch (e) {
-                                  console.log(e.stack);
-                                }
-                                await sendMsgWithKeyboard(
-                                  bot,
-                                  chatId,
-                                  `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
-                                  menuKeyboard
-                                );
-                              }
-                              if (photoAnswer.video) {
-                                const video = photoAnswer.video;
-                                if (video.duration > 16) {
-                                  const prompt = await bot.sendMessage(
-                                    chatId,
-                                    "Видео должно быть меньше 15 секунд!",
-                                    forceReply()
-                                  );
-                                  bot.onReplyToMessage(
-                                    chatId,
-                                    prompt.message_id,
-                                    async (ans) => {
-                                      const video = ans.video;
+                                          const link = await bot.getFileLink(
+                                            video.file_id
+                                          );
+                                          const res = await fetch(link);
+                                          const fileBuffer =
+                                            await res.arrayBuffer();
 
+                                          const blob = new Blob([fileBuffer], {
+                                            type: "video/mp4",
+                                          });
+
+                                          const supPhoto =
+                                            await supabase.storage
+                                              .from("pfp")
+                                              .upload(
+                                                `videos/${fileInfo.file_unique_id}`,
+                                                blob,
+                                                {
+                                                  upsert: true,
+                                                }
+                                              );
+                                          await user.update({
+                                            video: `videos/${fileInfo.file_unique_id}`,
+                                          });
+
+                                          const { data } = supabase.storage
+                                            .from("pfp")
+                                            .getPublicUrl(user.video);
+
+                                          try {
+                                            await getProfile(
+                                              bot,
+                                              chatId,
+                                              user,
+                                              data.publicUrl
+                                            );
+                                          } catch (e) {
+                                            console.log(e.stack);
+                                          }
+                                          await sendMsgWithKeyboard(
+                                            bot,
+                                            chatId,
+                                            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                            menuKeyboard
+                                          );
+                                        }
+                                      );
+                                    } else {
                                       const fileInfo = await bot.getFile(
                                         video.file_id
                                       );
@@ -231,58 +293,9 @@ bot.on("message", async (msg) => {
                                         menuKeyboard
                                       );
                                     }
-                                  );
-                                } else {
-                                  const fileInfo = await bot.getFile(
-                                    video.file_id
-                                  );
-                                  await user.update({ photo: null });
-
-                                  const link = await bot.getFileLink(
-                                    video.file_id
-                                  );
-                                  const res = await fetch(link);
-                                  const fileBuffer = await res.arrayBuffer();
-
-                                  const blob = new Blob([fileBuffer], {
-                                    type: "video/mp4",
-                                  });
-
-                                  const supPhoto = await supabase.storage
-                                    .from("pfp")
-                                    .upload(
-                                      `videos/${fileInfo.file_unique_id}`,
-                                      blob,
-                                      {
-                                        upsert: true,
-                                      }
-                                    );
-                                  await user.update({
-                                    video: `videos/${fileInfo.file_unique_id}`,
-                                  });
-
-                                  const { data } = supabase.storage
-                                    .from("pfp")
-                                    .getPublicUrl(user.video);
-
-                                  try {
-                                    await getProfile(
-                                      bot,
-                                      chatId,
-                                      user,
-                                      data.publicUrl
-                                    );
-                                  } catch (e) {
-                                    console.log(e.stack);
                                   }
-                                  await sendMsgWithKeyboard(
-                                    bot,
-                                    chatId,
-                                    `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
-                                    menuKeyboard
-                                  );
                                 }
-                              }
+                              );
                             }
                           );
                         }
@@ -293,23 +306,27 @@ bot.on("message", async (msg) => {
               );
             }
           );
-        });
-      } else {
-        try {
-          const { data } = supabase.storage
-            .from("pfp")
-            .getPublicUrl(
-              existingUser.video ? existingUser.video : existingUser.photo
+        } else {
+          try {
+            const { data } = supabase.storage
+              .from("pfp")
+              .getPublicUrl(
+                existingUser.video ? existingUser.video : existingUser.photo
+              );
+            await getProfile(bot, chatId, existingUser, data.publicUrl);
+            await sendMsgWithKeyboard(
+              bot,
+              chatId,
+              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              menuKeyboard
             );
-          await getProfile(bot, chatId, existingUser, data.publicUrl);
-          await sendMsgWithKeyboard(
-            bot,
-            chatId,
-            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
-            menuKeyboard
-          );
-        } catch (e) {
-          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+          } catch (e) {
+            return bot.sendMessage(
+              chatId,
+              `Проблемка тут`,
+              console.log(e.stack)
+            );
+          }
         }
       }
     }
