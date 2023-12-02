@@ -463,7 +463,7 @@ bot.on("message", async (msg) => {
               id: { [Op.not]: user.id },
               [Op.or]: [
                 { lang_code: { [Op.substring]: user.lang_code } },
-                { age: { [Op.between]: [user.age - 1, user.age + 1] } },
+                { age: { [Op.between]: [+user.age - 1, +user.age + 1] } },
               ],
             },
             offset: 0,
