@@ -3,38 +3,42 @@ const commands = [
   { command: "/menu", description: "Открыть меню" },
 ];
 const commandsForNew = [{ command: "/start", description: "Запустить бота" }];
-const opts = {
+const like = {
   reply_markup: JSON.stringify({
     inline_keyboard: [
-      [{ text: "Кнопка 1", callback_data: "1" }],
-      [{ text: "Кнопка 2", callback_data: "data 2" }],
-      [{ text: "Кнопка 3", callback_data: "text 3" }],
+      [{ text: "1.❤️", callback_data: "like" }],
+      [{ text: "2.👎", callback_data: "dislike" }],
     ],
   }),
 };
-
+const likeKeyboard = [["1.❤️", "2.👎"]];
 const menuKeyboard = [
   ["1.Смотреть свою анкету", "2.Изменить анкету"],
   ["3.Смотреть другие анкеты", "4.Закрыть меню"],
 ];
 
 const editProfileKeyboard = [
-  ["1.Имя", "2.Фото"],
+  ["1.Имя", "2.Фото/Видео"],
   ["3.Описание", "4.Язык"],
-  ["5.Возраст"],
+  ["5.Возраст", "6.Пол"],
   ["Назад"],
 ];
 
-const langKeyboard = [
-  ["Английский", "Китайский", "Корейский"],
-  ["Японский", "1", "2"],
-  ["3", "4", "5"],
-];
+// const langKeyboard = [
+//   ["Английский", "Китайский", "Корейский"],
+//   ["Японский", "1", "2"],
+//   ["3", "4", "5"],
+// ];
+
+// const sexKeyboard=[
+//   ["Мужской", "Женский"],
+// ]
 module.exports = {
+  likeKeyboard,
   commands,
-  opts,
+  like,
   menuKeyboard,
   editProfileKeyboard,
-  langKeyboard,
+
   commandsForNew,
 };

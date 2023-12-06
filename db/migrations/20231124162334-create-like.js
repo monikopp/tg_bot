@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      sender_id: {
+      senderId: {
         type: Sequelize.INTEGER,
         references: {
           model: "Users",
@@ -17,14 +17,16 @@ module.exports = {
         },
       },
 
-      receiver_id: {
+      receiverId: {
         type: Sequelize.INTEGER,
         references: {
           model: "Users",
           key: "id",
         },
       },
-
+      type: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

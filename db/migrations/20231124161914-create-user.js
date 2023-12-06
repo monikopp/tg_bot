@@ -22,6 +22,9 @@ module.exports = {
       photo: {
         type: Sequelize.STRING,
       },
+      video: {
+        type: Sequelize.STRING,
+      },
       username: {
         type: Sequelize.STRING,
         unique: true,
@@ -30,6 +33,9 @@ module.exports = {
         type: Sequelize.TEXT,
       },
       lang_code: {
+        type: Sequelize.STRING,
+      },
+      sex: {
         type: Sequelize.STRING,
       },
       createdAt: {
