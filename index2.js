@@ -8,7 +8,7 @@ const { Telegraf, session, Scenes } = require("telegraf");
 
 const { leave, enter } = Scenes.Stage;
 const { message } = require("telegraf/filters");
-const { stage } = require("./regScene");
+const { stage } = require("./scenes");
 
 const bot = new Telegraf(process.env.API_TOKEN, { polling: true });
 
