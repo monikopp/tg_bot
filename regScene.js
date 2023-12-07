@@ -1,6 +1,6 @@
 const { session, Scenes } = require("telegraf");
 const { leave, enter } = Scenes.Stage;
-const { message } = require("telegraf/filters");
+const { message, editedMessage } = require("telegraf/filters");
 const { User, Like } = require("./db/models");
 const { getSexKeyboard, getBackKeyboard } = require("./keyboard");
 const { Op } = require("sequelize");
@@ -26,6 +26,9 @@ let prevUser;
 let showingUser;
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
 const Scene = Scenes.BaseScene;
+
+// ========РЕГА===============================
+
 const nameScene = new Scene("name");
 nameScene.enter((ctx) => ctx.reply("Привет👋🏻, как тебя зовут? "));
 nameScene.on(message("text"), async (ctx) => {
@@ -101,8 +104,9 @@ pfpScene.on(message("photo"), async (ctx) => {
   return ctx.scene.leave();
 });
 
-const seeOthersScene = new Scene("seeOthers");
+// ============ТУТ ЛАЙКИ====================================
 
+const seeOthersScene = new Scene("seeOthers");
 seeOthersScene.enter(async (ctx) => {
   let user = await User.findOne({ where: { chat_id: ctx.chat.id } });
 
@@ -147,7 +151,145 @@ seeOthersScene.enter(async (ctx) => {
       find.rows.splice(0, 1);
     }
   }
+});
+
+seeOthersScene.hears("1.❤️", async (ctx) => {
+  return ctx.scene.enter("like");
+});
+seeOthersScene.hears("2.👎", async (ctx) => {
+  return ctx.scene.enter("dislike");
+});
+seeOthersScene.hears("3.Вернуться в меню", async (ctx) => {
+  return ctx.scene.enter("backToMenu");
+});
+
+const likeScene = new Scene("like");
+likeScene.enter(async (ctx) => {
+  let user = await User.findOne({ where: { chat_id: ctx.chat.id } });
+  await Like.create({
+    senderId: user.id,
+    receiverId: prevUser.id,
+    type: "like",
+  });
+  const liked = await Like.findOne({
+    where: { senderId: prevUser.id, receiverId: user.id },
+    include: { model: User, as: "Sender" },
+  });
+  if (liked !== null && liked.type === "like") {
+    await bot.sendMessage(
+      chatId,
+      `Кажется у вас взаимная симпатия! Держи @${liked.Sender.username}`
+    );
+    await bot.sendMessage(
+      liked.Sender.chat_id,
+      ` Кажется у вас взаимная симпатия! Держи @${user.username}`
+    );
+  }
+  if (find.rows.length) {
+    showingUser = find.rows[0];
+    const { data } = supabase.storage
+      .from("pfp")
+      .getPublicUrl(showingUser.photo);
+
+    prevUser = getOtherProfile(
+      ctx.telegram,
+      user.chat_id,
+      showingUser,
+      likeKeyboard,
+      data.publicUrl
+    );
+    find.rows.splice(0, 1);
+  } else {
+    await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
+  }
   return ctx.scene.leave();
+});
+
+const dislikeScene = new Scene("dislike");
+
+dislikeScene.enter(async (ctx) => {
+  let user = await User.findOne({ where: { chat_id: ctx.chat.id } });
+  await Like.create({
+    senderId: user.id,
+    receiverId: prevUser.id,
+    type: "dislike",
+  });
+  if (find.rows.length) {
+    showingUser = find.rows[0];
+    const { data } = supabase.storage
+      .from("pfp")
+      .getPublicUrl(showingUser.photo);
+
+    prevUser = getOtherProfile(
+      ctx.telegram,
+      user.chat_id,
+      showingUser,
+      likeKeyboard,
+      data.publicUrl
+    );
+    find.rows.splice(0, 1);
+  } else {
+    await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
+  }
+  return ctx.scene.leave();
+});
+
+// ===========МЕНЮ==============================
+
+const menuScene = new Scene("menu");
+menuScene.enter(async (ctx) => {
+  await sendMsgWithKeyboard(
+    ctx.telegram,
+    ctx.chat.id,
+    `1.Смотреть свою анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+    menuKeyboard
+  );
+});
+
+menuScene.hears("1.Смотреть свою анкету", async (ctx) => {
+  return ctx.scene.enter("seeMyProfile");
+});
+menuScene.hears("2.Изменить анкету", async (ctx) => {
+  return ctx.scene.enter("edtProfile");
+});
+menuScene.hears("3.Смотреть другие анкеты", async (ctx) => {
+  return ctx.scene.enter("seeOthers");
+});
+menuScene.hears("4.Закрыть меню", async (ctx) => {
+  return ctx.scene.enter("closeMenu");
+});
+
+const backToMenuScene = new Scene("backToMenu");
+backToMenuScene.enter(async (ctx) => {
+  await ctx.reply("Возвращаемся в меню:");
+  return ctx.scene.enter("menu");
+});
+
+const seeMyProfileScene = new Scene("seeMyProfile");
+seeMyProfileScene.enter(async (ctx) => {
+  let user = await User.findOne({ where: { chat_id: ctx.chat.id } });
+  const { data } = supabase.storage.from("pfp").getPublicUrl(user.photo);
+  await getProfile(ctx.telegram, user.chat_id, user, data.publicUrl);
+  return ctx.scene.enter("menu");
+});
+
+const edtProfileScene = new Scene("edtProfile");
+edtProfileScene.enter(async (ctx) => {
+  await sendMsgWithKeyboard(
+    ctx.telegram,
+    ctx.chat.id,
+    "Что меняем?",
+    editProfileKeyboard
+  );
+});
+
+const closeMenuScene = new Scene("closeMenu");
+closeMenuScene.enter(async (ctx) => {
+  await ctx.reply("Меню закрыто", {
+    reply_markup: {
+      remove_keyboard: true,
+    },
+  });
 });
 
 const stage = new Scenes.Stage([
@@ -158,6 +300,13 @@ const stage = new Scenes.Stage([
   infoScene,
   pfpScene,
   seeOthersScene,
+  likeScene,
+  dislikeScene,
+  backToMenuScene,
+  seeMyProfileScene,
+  menuScene,
+  edtProfileScene,
+  closeMenuScene,
 ]);
 
 module.exports = { stage };
