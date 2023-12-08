@@ -38,12 +38,11 @@ bot.start(async (ctx) => {
     ctx.reply("Что-то пошло не так", e.name);
   }
 });
-// bot.hears("/reg", Scenes.Stage.enter("name"));
-// bot.hears("/menu");
+
 bot.hears("/menu", Scenes.Stage.enter("menu"));
-bot.help((ctx) => ctx.reply("Send me a sticker"));
+
 bot.on(message("sticker"), (ctx) => ctx.reply("👍"));
-bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+
 bot.launch();
 
 // Enable graceful stop
