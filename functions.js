@@ -13,30 +13,19 @@ async function getProfile(bot, chatId, user, imgUrl) {
     caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
   };
   await bot.sendMessage(chatId, "Вот твоя анкета:");
-  // if (user.photo === null) {
-  //   const res = await bot.sendVideo(chatId, imgUrl, uProfile);
-  //   return res;
-  // } else {
+
   const res = await bot.sendPhoto(chatId, imgUrl, uProfile);
   return res;
-  // }
-  // await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
 }
 
 async function getOtherProfile(bot, chatId, user, keyboard, url) {
   const uProfile = {
     caption: `${user.first_name}, ${user.age} \nИзучаемый язык: ${user.lang_code} \n${user.info}`,
-    parse_mode: "markdown",
   };
   await bot.sendMessage(chatId, "👀", openKeyboard(keyboard));
-  // if (user.photo === null) {
-  //   const res = await bot.sendVideo(chatId, url, uProfile);
-  //   return res;
-  // } else {
+
   const res = await bot.sendPhoto(chatId, url, uProfile);
   return res;
-  // }
-  // return res;
 }
 function openKeyboard(keyboard) {
   const board = {
