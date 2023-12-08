@@ -35,7 +35,7 @@ nameScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("age");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -48,7 +48,7 @@ ageScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("sex");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -61,7 +61,7 @@ sexScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("lang");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -74,7 +74,7 @@ langScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("info");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -87,7 +87,7 @@ infoScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("pfp");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -113,7 +113,7 @@ pfpScene.on(message("photo"), async (ctx) => {
     });
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
     console.log(e.stack);
   }
 });
@@ -169,7 +169,7 @@ seeOthersScene.enter(async (ctx) => {
     }
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -211,7 +211,7 @@ likeScene.enter(async (ctx) => {
     }
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -236,7 +236,7 @@ dislikeScene.enter(async (ctx) => {
     }
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -278,7 +278,7 @@ seeMyProfileScene.enter(async (ctx) => {
     return ctx.scene.enter("menu");
   } catch (e) {
     console.log(e.satck);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -320,7 +320,7 @@ nameUpdScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -349,7 +349,7 @@ pfpUpdScene.on(message("photo"), async (ctx) => {
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -363,7 +363,7 @@ infoUpdScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
     console.log(e.satck);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -377,7 +377,7 @@ langUpdScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -391,7 +391,7 @@ ageUpdScene.on(message("text"), async (ctx) => {
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
@@ -406,7 +406,7 @@ sexUpdScene.on(message("text"), async (ctx) => {
 
     return ctx.scene.enter("seeMyProfile");
   } catch (e) {
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
     console.log(e.stack);
   }
 });

@@ -23,7 +23,7 @@ bot.start(async (ctx) => {
     }
   } catch (e) {
     console.log(e.stack);
-    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
+    ctx.reply(`Что-то пошло не так`);
   }
 });
 
