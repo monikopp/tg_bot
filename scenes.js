@@ -150,7 +150,8 @@ seeOthersScene.enter(async (ctx) => {
       }
 
       if (find.rows.length === 0) {
-        await bot.sendMessage(chatId, "Новых анкет пока нет");
+        await ctx.reply("Новых анкет пока нет");
+        return ctx.scene.enter("backToMenu");
       } else {
         showingUser = find.rows[0];
         const { data } = supabase.storage
