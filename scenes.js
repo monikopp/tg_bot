@@ -167,6 +167,8 @@ seeOthersScene.enter(async (ctx) => {
         );
         find.rows.splice(0, 1);
       }
+    } else {
+      ctx.reply("Мы не нашли подходящих анкет(");
     }
   } catch (e) {
     console.log(e.stack);
