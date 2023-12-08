@@ -128,6 +128,7 @@ seeOthersScene.enter(async (ctx) => {
     const user = await User.findOne({ where: { username: ctx.from.username } });
     find = await User.findAndCountAll({
       where: {
+        photo: { [Op.not]: null },
         id: { [Op.not]: user.id },
         [Op.or]: [
           { lang_code: { [Op.substring]: user.lang_code } },
