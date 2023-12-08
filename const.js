@@ -19,9 +19,7 @@ const editProfileKeyboard = [
 module.exports = {
   likeKeyboard,
   commands,
-  like,
+
   menuKeyboard,
   editProfileKeyboard,
-
-  commandsForNew,
 };
