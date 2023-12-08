@@ -20,7 +20,7 @@ const nameUpdScene = new Scene('nameUpd');
 edtProfileScene.hears('1.Имя', async (ctx) => ctx.scene.enter('nameUpd'));
 nameUpdScene.enter((ctx) => ctx.reply('Введи новое имя'));
 nameUpdScene.on(message('text'), async (ctx) => {
-  // ctx.session.name = ctx.message.text;
+  ctx.session.name = ctx.message.text;
   await user.update({ age: ctx.message.text });
   //   ctx.reply('Анкета изменена:');
   return ctx.scene.enter('seeMyProfile');
@@ -87,7 +87,7 @@ ageUpdScene.on(message('text'), async (ctx) => {
 });
 
 const sexUpdScene = new Scene('sexUpd');
-edtProfileScene.hears('5.Пол', async (ctx) => ctx.scene.enter('sexUpd'));
+edtProfileScene.hears('6.Пол', async (ctx) => ctx.scene.enter('sexUpd'));
 sexUpdScene.enter((ctx) => ctx.reply('Твой пол?', getSexKeyboard()));
 sexUpdScene.on(message('text'), async (ctx) => {
   // ctx.session.name = ctx.message.text;
