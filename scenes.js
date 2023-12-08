@@ -194,11 +194,11 @@ likeScene.enter(async (ctx) => {
       include: { model: User, as: "Sender" },
     });
     if (liked !== null && liked.type === "like") {
-      await bot.sendMessage(
-        chatId,
+      await ctx.telegram.sendMessage(
+        ctx.chat.id,
         `Кажется у вас взаимная симпатия! Держи @${liked.Sender.username}`
       );
-      await bot.sendMessage(
+      await ctx.telegram.sendMessage(
         liked.Sender.chat_id,
         ` Кажется у вас взаимная симпатия! Держи @${user.username}`
       );
