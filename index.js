@@ -1,9 +1,10 @@
-require("dotenv").config();
-const { createClient } = require("@supabase/supabase-js");
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
+
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
-const TelegramBot = require("node-telegram-bot-api");
-const { Op } = require("sequelize");
-const fs = require("fs");
+const TelegramBot = require('node-telegram-bot-api');
+const { Op } = require('sequelize');
+const fs = require('fs');
 const {
   commands,
   commandsForNew,
@@ -11,16 +12,16 @@ const {
   editProfileKeyboard,
   like,
   likeKeyboard,
-} = require("./const");
+} = require('./const');
 const {
   sendMsgWithKeyboard,
   openKeyboard,
   forceReply,
   getProfile,
   getOtherProfile,
-} = require("./functions");
-require("dotenv").config();
-const { User, Like } = require("./db/models");
+} = require('./functions');
+require('dotenv').config();
+const { User, Like } = require('./db/models');
 
 const bot = new TelegramBot(process.env.API_TOKEN, { polling: true });
 
@@ -29,7 +30,7 @@ let find;
 
 let showingUser;
 let prevUser;
-bot.on("message", async (msg) => {
+bot.on('message', async (msg) => {
   const { text } = msg;
   const chatId = msg.chat.id;
 
@@ -37,20 +38,20 @@ bot.on("message", async (msg) => {
     if (msg.from.username === undefined) {
       await bot.sendMessage(
         chatId,
-        "Необходимо имя пользователя чтобы использовать бота"
+        'Необходимо имя пользователя чтобы использовать бота'
       );
     } else {
       const existingUser = await User.findOne({
         where: { username: msg.from.username },
       });
 
-      if (text === "/start") {
+      if (text === '/start') {
         if (existingUser === null) {
           let user;
 
           const namePrompt = await bot.sendMessage(
             chatId,
-            `Привет👋🏻, как тебя зовут? `,
+            'Привет👋🏻, как тебя зовут? ',
             forceReply()
           );
 
@@ -67,7 +68,7 @@ bot.on("message", async (msg) => {
 
               const ageQuestion = await bot.sendMessage(
                 chatId,
-                "Сколько тебе лет?",
+                'Сколько тебе лет?',
                 forceReply()
               );
               bot.onReplyToMessage(
@@ -75,10 +76,10 @@ bot.on("message", async (msg) => {
                 ageQuestion.message_id,
                 async (ageAnswer) => {
                   const age = ageAnswer.text;
-                  await user.update({ age: age });
+                  await user.update({ age });
                   const sexQuestion = await bot.sendMessage(
                     chatId,
-                    "Твой пол?(Парень/Девушка)",
+                    'Твой пол?(Парень/Девушка)',
                     forceReply()
                   );
 
@@ -87,11 +88,11 @@ bot.on("message", async (msg) => {
                     sexQuestion.message_id,
                     async (sexAnswer) => {
                       const sex = sexAnswer.text;
-                      await user.update({ sex: sex });
+                      await user.update({ sex });
 
                       const lagQuestion = await bot.sendMessage(
                         chatId,
-                        `Какой язык изучаешь? `,
+                        'Какой язык изучаешь? ',
                         forceReply()
                       );
 
@@ -105,7 +106,7 @@ bot.on("message", async (msg) => {
                           await bot.sendMessage(chatId, ` ${lang}, круто!`);
                           const infoQuestion = await bot.sendMessage(
                             chatId,
-                            "Добавь описание к своей анкете:",
+                            'Добавь описание к своей анкете:',
                             forceReply()
                           );
                           bot.onReplyToMessage(
@@ -113,10 +114,10 @@ bot.on("message", async (msg) => {
                             infoQuestion.message_id,
                             async (infoAnswer) => {
                               const info = infoAnswer.text;
-                              await user.update({ info: info });
+                              await user.update({ info });
                               const photoQuestion = await bot.sendMessage(
                                 chatId,
-                                "Отправь фото/видео(не более 15 секунд!)",
+                                'Отправь фото/видео(не более 15 секунд!)',
                                 forceReply()
                               );
                               bot.onReplyToMessage(
@@ -124,7 +125,7 @@ bot.on("message", async (msg) => {
                                 photoQuestion.message_id,
                                 async (photoAnswer) => {
                                   if (photoAnswer.photo) {
-                                    const photo = photoAnswer.photo;
+                                    const { photo } = photoAnswer;
 
                                     await user.update({ video: null });
                                     const fileInfo = await bot.getFile(
@@ -137,11 +138,11 @@ bot.on("message", async (msg) => {
                                     const fileBuffer = await res.arrayBuffer();
 
                                     const blob = new Blob([fileBuffer], {
-                                      type: "image/jpeg",
+                                      type: 'image/jpeg',
                                     });
 
                                     const supPhoto = await supabase.storage
-                                      .from("pfp")
+                                      .from('pfp')
                                       .upload(
                                         `photos/${fileInfo.file_unique_id}`,
                                         blob,
@@ -154,7 +155,7 @@ bot.on("message", async (msg) => {
                                     });
 
                                     const { data } = supabase.storage
-                                      .from("pfp")
+                                      .from('pfp')
                                       .getPublicUrl(user.photo);
 
                                     try {
@@ -170,23 +171,23 @@ bot.on("message", async (msg) => {
                                     await sendMsgWithKeyboard(
                                       bot,
                                       chatId,
-                                      `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                      '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                                       menuKeyboard
                                     );
                                   }
                                   if (photoAnswer.video) {
-                                    const video = photoAnswer.video;
+                                    const { video } = photoAnswer;
                                     if (video.duration > 16) {
                                       const prompt = await bot.sendMessage(
                                         chatId,
-                                        "Видео должно быть меньше 15 секунд!",
+                                        'Видео должно быть меньше 15 секунд!',
                                         forceReply()
                                       );
                                       bot.onReplyToMessage(
                                         chatId,
                                         prompt.message_id,
                                         async (ans) => {
-                                          const video = ans.video;
+                                          const { video } = ans;
 
                                           const fileInfo = await bot.getFile(
                                             video.file_id
@@ -201,12 +202,12 @@ bot.on("message", async (msg) => {
                                             await res.arrayBuffer();
 
                                           const blob = new Blob([fileBuffer], {
-                                            type: "video/mp4",
+                                            type: 'video/mp4',
                                           });
 
                                           const supPhoto =
                                             await supabase.storage
-                                              .from("pfp")
+                                              .from('pfp')
                                               .upload(
                                                 `videos/${fileInfo.file_unique_id}`,
                                                 blob,
@@ -219,7 +220,7 @@ bot.on("message", async (msg) => {
                                           });
 
                                           const { data } = supabase.storage
-                                            .from("pfp")
+                                            .from('pfp')
                                             .getPublicUrl(user.video);
 
                                           try {
@@ -235,7 +236,7 @@ bot.on("message", async (msg) => {
                                           await sendMsgWithKeyboard(
                                             bot,
                                             chatId,
-                                            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                            '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                                             menuKeyboard
                                           );
                                         }
@@ -254,11 +255,11 @@ bot.on("message", async (msg) => {
                                         await res.arrayBuffer();
 
                                       const blob = new Blob([fileBuffer], {
-                                        type: "video/mp4",
+                                        type: 'video/mp4',
                                       });
 
                                       const supPhoto = await supabase.storage
-                                        .from("pfp")
+                                        .from('pfp')
                                         .upload(
                                           `videos/${fileInfo.file_unique_id}`,
                                           blob,
@@ -271,7 +272,7 @@ bot.on("message", async (msg) => {
                                       });
 
                                       const { data } = supabase.storage
-                                        .from("pfp")
+                                        .from('pfp')
                                         .getPublicUrl(user.video);
 
                                       try {
@@ -287,7 +288,7 @@ bot.on("message", async (msg) => {
                                       await sendMsgWithKeyboard(
                                         bot,
                                         chatId,
-                                        `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                                        '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                                         menuKeyboard
                                       );
                                     }
@@ -307,7 +308,7 @@ bot.on("message", async (msg) => {
         } else {
           try {
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(
                 existingUser.video ? existingUser.video : existingUser.photo
               );
@@ -315,13 +316,13 @@ bot.on("message", async (msg) => {
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           } catch (e) {
             return bot.sendMessage(
               chatId,
-              `Проблемка тут`,
+              'Проблемка тут',
               console.log(e.stack)
             );
           }
@@ -329,35 +330,35 @@ bot.on("message", async (msg) => {
       }
     }
     const user = await User.findOne({ where: { username: msg.from.username } });
-    if (text === "/menu" && user !== null) {
+    if (text === '/menu' && user !== null) {
       try {
-        await sendMsgWithKeyboard(bot, chatId, "Меню бота:", menuKeyboard);
+        await sendMsgWithKeyboard(bot, chatId, 'Меню бота:', menuKeyboard);
       } catch (e) {
-        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+        return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
       }
     }
-    if (text === "/menu" && user === null) {
+    if (text === '/menu' && user === null) {
       try {
         await bot.sendMessage(
           chatId,
-          `Сначала придется зарегистрироваться :)\nВведи /start чтобы создать анкету`
+          'Сначала придется зарегистрироваться :)\nВведи /start чтобы создать анкету'
         );
       } catch (e) {
-        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+        return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
       }
     }
-    if (text === "2.👎") {
+    if (text === '2.👎') {
       try {
         await Like.create({
           senderId: user.id,
           receiverId: showingUser.id,
-          type: "dislike",
+          type: 'dislike',
         });
 
         if (find.rows.length) {
           showingUser = find.rows[0];
           const { data } = supabase.storage
-            .from("pfp")
+            .from('pfp')
             .getPublicUrl(
               showingUser.video ? showingUser.video : showingUser.photo
             );
@@ -371,25 +372,25 @@ bot.on("message", async (msg) => {
           );
           find.rows.splice(0, 1);
         } else {
-          await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
+          await bot.sendMessage(chatId, 'Это были все анкеты, что мы нашли(');
         }
       } catch (e) {
-        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+        return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
       }
     }
-    if (text === "1.❤️") {
+    if (text === '1.❤️') {
       try {
         await Like.create({
           senderId: user.id,
           receiverId: showingUser.id,
-          type: "like",
+          type: 'like',
         });
         const liked = await Like.findOne({
           where: { senderId: showingUser.id, receiverId: user.id },
-          include: { model: User, as: "Sender" },
+          include: { model: User, as: 'Sender' },
         });
 
-        if (liked !== null && liked.type === "like") {
+        if (liked !== null && liked.type === 'like') {
           await bot.sendMessage(
             chatId,
             `Кажется у вас взаимная симпатия! Держи @${liked.Sender.username}`
@@ -402,7 +403,7 @@ bot.on("message", async (msg) => {
         if (find.rows.length) {
           showingUser = find.rows[0];
           const { data } = supabase.storage
-            .from("pfp")
+            .from('pfp')
             .getPublicUrl(
               showingUser.video ? showingUser.video : showingUser.photo
             );
@@ -416,47 +417,47 @@ bot.on("message", async (msg) => {
           );
           find.rows.splice(0, 1);
         } else {
-          await bot.sendMessage(chatId, "Это были все анкеты, что мы нашли(");
+          await bot.sendMessage(chatId, 'Это были все анкеты, что мы нашли(');
         }
       } catch (e) {
-        return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+        return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
       }
     }
 
     switch (text) {
-      case "1.Смотреть свою анкету":
+      case '1.Смотреть свою анкету':
         try {
           const { data } = supabase.storage
-            .from("pfp")
+            .from('pfp')
             .getPublicUrl(user.video ? user.video : user.photo);
           await getProfile(bot, chatId, user, data.publicUrl);
           await sendMsgWithKeyboard(
             bot,
             chatId,
-            `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+            '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
             menuKeyboard
           );
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут}`,
+            'Проблемка тут}',
             console.log(e.stack)
           );
         }
         break;
-      case "2.Изменить анкету":
+      case '2.Изменить анкету':
         try {
           await sendMsgWithKeyboard(
             bot,
             chatId,
-            "Что меняем?",
+            'Что меняем?',
             editProfileKeyboard
           );
         } catch (e) {
-          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+          return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
         }
         break;
-      case "3.Смотреть другие анкеты":
+      case '3.Смотреть другие анкеты':
         try {
           find = await User.findAndCountAll({
             where: {
@@ -472,7 +473,7 @@ bot.on("message", async (msg) => {
           if (find.count > 0) {
             const alreadyLiked = await Like.findAll({
               where: { senderId: user.id },
-              as: "Sender",
+              as: 'Sender',
             });
 
             for (let i = 0; i < find.rows.length; i++) {
@@ -484,11 +485,11 @@ bot.on("message", async (msg) => {
             }
 
             if (find.rows.length === 0) {
-              await bot.sendMessage(chatId, "Новых анкет пока нет");
+              await bot.sendMessage(chatId, 'Новых анкет пока нет');
             } else {
               showingUser = find.rows[0];
               const { data } = supabase.storage
-                .from("pfp")
+                .from('pfp')
                 .getPublicUrl(
                   showingUser.video ? showingUser.video : showingUser.photo
                 );
@@ -506,58 +507,58 @@ bot.on("message", async (msg) => {
             //   await bot.sendMessage(chatId, "Новых анкет пока нет");
             // }
           } else {
-            await bot.sendMessage(chatId, "Новых анкет пока нет(");
+            await bot.sendMessage(chatId, 'Новых анкет пока нет(');
           }
         } catch (e) {
-          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+          return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
         }
 
         break;
-      case "4.Закрыть меню":
+      case '4.Закрыть меню':
         try {
-          bot.sendMessage(chatId, "Меню закрыто", {
+          bot.sendMessage(chatId, 'Меню закрыто', {
             reply_markup: {
               remove_keyboard: true,
             },
           });
         } catch (e) {
-          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+          return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
         }
         break;
     }
 
     switch (text) {
-      case "1.Имя":
+      case '1.Имя':
         try {
           const nameQ = await bot.sendMessage(
             chatId,
-            "Введи новое имя",
+            'Введи новое имя',
             forceReply()
           );
           bot.onReplyToMessage(chatId, nameQ.message_id, async (msg) => {
             first_name = msg.text;
 
-            await user.update({ first_name: first_name });
+            await user.update({ first_name });
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(user.video ? user.video : user.photo);
             await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           });
         } catch (e) {
-          return bot.sendMessage(chatId, `Проблемка тут`, console.log(e.stack));
+          return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
         }
         break;
-      case "2.Фото/Видео":
+      case '2.Фото/Видео':
         try {
           const photoQ = await bot.sendMessage(
             chatId,
-            "Отправь новое фото/видео(меньше 15 секунд!)",
+            'Отправь новое фото/видео(меньше 15 секунд!)',
             forceReply()
           );
           bot.onReplyToMessage(
@@ -565,7 +566,7 @@ bot.on("message", async (msg) => {
             photoQ.message_id,
             async (photoAnswer) => {
               if (photoAnswer.photo) {
-                const photo = photoAnswer.photo;
+                const { photo } = photoAnswer;
                 await user.update({ video: null });
                 const fileInfo = await bot.getFile(
                   photo[photo.length - 1].file_id
@@ -576,10 +577,10 @@ bot.on("message", async (msg) => {
 
                 const res = await fetch(link);
                 const fileBuffer = await res.arrayBuffer();
-                const blob = new Blob([fileBuffer], { type: "image/jpeg" });
+                const blob = new Blob([fileBuffer], { type: 'image/jpeg' });
 
                 const supPhoto = await supabase.storage
-                  .from("pfp")
+                  .from('pfp')
                   .upload(`photos/${fileInfo.file_unique_id}`, blob, {
                     upsert: true,
                   });
@@ -589,7 +590,7 @@ bot.on("message", async (msg) => {
                 });
 
                 const { data } = supabase.storage
-                  .from("pfp")
+                  .from('pfp')
                   .getPublicUrl(user.photo);
 
                 try {
@@ -600,23 +601,23 @@ bot.on("message", async (msg) => {
                 await sendMsgWithKeyboard(
                   bot,
                   chatId,
-                  `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                  '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                   menuKeyboard
                 );
               }
               if (photoAnswer.video) {
-                const video = photoAnswer.video;
+                const { video } = photoAnswer;
                 if (video.duration > 16) {
                   const prompt = await bot.sendMessage(
                     chatId,
-                    "Видео должно быть меньше 15 секунд!",
+                    'Видео должно быть меньше 15 секунд!',
                     forceReply()
                   );
                   bot.onReplyToMessage(
                     chatId,
                     prompt.message_id,
                     async (ans) => {
-                      const video = ans.video;
+                      const { video } = ans;
                       const fileInfo = await bot.getFile(video.file_id);
 
                       await user.update({ photo: null });
@@ -626,11 +627,11 @@ bot.on("message", async (msg) => {
                       const fileBuffer = await res.arrayBuffer();
 
                       const blob = new Blob([fileBuffer], {
-                        type: "video/mp4",
+                        type: 'video/mp4',
                       });
 
                       const supPhoto = await supabase.storage
-                        .from("pfp")
+                        .from('pfp')
                         .upload(`videos/${fileInfo.file_unique_id}`, blob, {
                           upsert: true,
                         });
@@ -639,7 +640,7 @@ bot.on("message", async (msg) => {
                       });
 
                       const { data } = supabase.storage
-                        .from("pfp")
+                        .from('pfp')
                         .getPublicUrl(user.video);
 
                       try {
@@ -650,7 +651,7 @@ bot.on("message", async (msg) => {
                       await sendMsgWithKeyboard(
                         bot,
                         chatId,
-                        `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                        '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                         menuKeyboard
                       );
                     }
@@ -664,11 +665,11 @@ bot.on("message", async (msg) => {
                   const fileBuffer = await res.arrayBuffer();
 
                   const blob = new Blob([fileBuffer], {
-                    type: "video/mp4",
+                    type: 'video/mp4',
                   });
 
                   const supPhoto = await supabase.storage
-                    .from("pfp")
+                    .from('pfp')
                     .upload(`videos/${fileInfo.file_unique_id}`, blob, {
                       upsert: true,
                     });
@@ -677,7 +678,7 @@ bot.on("message", async (msg) => {
                   });
 
                   const { data } = supabase.storage
-                    .from("pfp")
+                    .from('pfp')
                     .getPublicUrl(user.video);
 
                   try {
@@ -688,7 +689,7 @@ bot.on("message", async (msg) => {
                   await sendMsgWithKeyboard(
                     bot,
                     chatId,
-                    `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+                    '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
                     menuKeyboard
                   );
                 }
@@ -698,146 +699,146 @@ bot.on("message", async (msg) => {
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут`,
+            'Проблемка тут',
             console.log(e, e.stack)
           );
         }
         break;
-      case "3.Описание":
+      case '3.Описание':
         try {
           const infoQ = await bot.sendMessage(
             chatId,
-            "Отправь новое описание",
+            'Отправь новое описание',
             forceReply()
           );
           bot.onReplyToMessage(chatId, infoQ.message_id, async (infoA) => {
             const info = infoA.text;
-            await user.update({ info: info });
+            await user.update({ info });
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(user.video ? user.video : user.photo);
             await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           });
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут}`,
+            'Проблемка тут}',
             console.log(e.stack)
           );
         }
         break;
-      case "4.Язык":
+      case '4.Язык':
         try {
           const langQ = await bot.sendMessage(
             chatId,
-            "Какой язык изучаешь?",
+            'Какой язык изучаешь?',
             forceReply()
           );
           bot.onReplyToMessage(chatId, langQ.message_id, async (langA) => {
             const lang = langA.text;
             await user.update({ lang_code: lang });
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(user.video ? user.video : user.photo);
             await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           });
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут`,
+            'Проблемка тут',
             console.log(e, e.stack)
           );
         }
         break;
-      case "5.Возраст":
+      case '5.Возраст':
         try {
           const ageQ = await bot.sendMessage(
             chatId,
-            "Введи новый возраст",
+            'Введи новый возраст',
             forceReply()
           );
           bot.onReplyToMessage(chatId, ageQ.message_id, async (ageA) => {
             const age = ageA.text;
-            await user.update({ age: age });
+            await user.update({ age });
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(user.video ? user.video : user.photo);
             await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           });
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут`,
+            'Проблемка тут',
             console.log(e, e.stack)
           );
         }
         break;
-      case "6.Пол":
+      case '6.Пол':
         try {
           const sexQ = await bot.sendMessage(
             chatId,
-            "Твой пол?(Парень/Девушка)",
+            'Твой пол?(Парень/Девушка)',
             forceReply()
           );
           bot.onReplyToMessage(chatId, sexQ.message_id, async (sexA) => {
             const sex = sexA.text;
-            await user.update({ sex: sex });
+            await user.update({ sex });
             const { data } = supabase.storage
-              .from("pfp")
+              .from('pfp')
               .getPublicUrl(user.video ? user.video : user.photo);
             await getProfile(bot, chatId, user, data.publicUrl);
             await sendMsgWithKeyboard(
               bot,
               chatId,
-              `1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню`,
+              '1.Смотреть анкету\n2.Изменить анкету\n3.Смотреть другие анкеты\n4.Закрыть меню',
               menuKeyboard
             );
           });
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут`,
+            'Проблемка тут',
             console.log(e, e.stack)
           );
         }
         break;
-      case "Назад":
+      case 'Назад':
         try {
           const mKeyboard = await sendMsgWithKeyboard(
             bot,
             chatId,
-            "Меню бота:",
+            'Меню бота:',
             menuKeyboard
           );
           break;
         } catch (e) {
           return bot.sendMessage(
             chatId,
-            `Проблемка тут`,
+            'Проблемка тут',
             console.log(e, e.stack)
           );
         }
     }
   } catch (e) {
-    return bot.sendMessage(chatId, "Проблемка тут", console.log(e.stack));
+    return bot.sendMessage(chatId, 'Проблемка тут', console.log(e.stack));
   }
   // return bot.sendMessage(chatId, "ничего не понял(");
 });

@@ -1,12 +1,6 @@
 require("dotenv").config();
-const { Op } = require("sequelize");
-const { createClient } = require("@supabase/supabase-js");
-const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
-
-const { User, Like } = require("./db/models");
+const { User } = require("./db/models");
 const { Telegraf, session, Scenes } = require("telegraf");
-
-const { leave, enter } = Scenes.Stage;
 const { message } = require("telegraf/filters");
 const { stage } = require("./scenes");
 
@@ -18,28 +12,29 @@ bot.use(stage.middleware());
 bot.start(async (ctx) => {
   try {
     const existingUser = await User.findOne({
-      where: { username: msg.from.username },
+      where: { username: ctx.from.username },
     });
     if (existingUser === null) {
-      Scenes.Stage.enter("name");
+      ctx.scene.enter("name");
     } else {
-      const { data } = supabase.storage
-        .from("pfp")
-        .getPublicUrl(existingUser.photo);
-      await getProfile(
-        ctx.telegram,
-        existingUser.chat_id,
-        existingUser,
-        data.publicUrl
-      );
+      ctx.scene.enter("seeMyProfile");
     }
   } catch (e) {
     console.log(e.stack);
-    ctx.reply("Что-то пошло не так", e.name);
+    ctx.reply(`Что-то пошло не так:\n ${e.name}`);
   }
 });
 
-bot.hears("/menu", Scenes.Stage.enter("menu"));
+bot.hears("/menu", async (ctx) => {
+  let user = await User.findOne({
+    where: { username: ctx.from.username },
+  });
+  if (user !== null) {
+    ctx.scene.enter("menu");
+  } else {
+    ctx.reply("Необходимо зарегистрироваться, введи /start");
+  }
+});
 
 bot.on(message("sticker"), (ctx) => ctx.reply("👍"));
 
