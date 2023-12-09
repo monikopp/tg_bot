@@ -25,25 +25,30 @@ const nameScene = new Scene("name");
 nameScene.enter((ctx) => ctx.reply("Привет👋🏻, как тебя зовут? "));
 nameScene.on(message("text"), async (ctx) => {
   try {
-    const [user, newUser] = await User.findOrCreate({
-      where: { username: ctx.chat.username },
-      defaults: {
-        username: ctx.chat.username,
-        chat_id: ctx.chat.id,
-        first_name: ctx.message.text,
-      },
-    });
-    if (!newUser) {
-      await user.destroy();
-      user = await User.create({
-        username: ctx.chat.username,
-        chat_id: ctx.chat.id,
-        first_name: ctx.message.text,
+    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+      await ctx.reply("Сначала заверши регистрацию");
+      return ctx.scene.enter("name");
+    } else {
+      const [user, created] = await User.findOrCreate({
+        where: { username: ctx.chat.username },
+        defaults: {
+          username: ctx.chat.username,
+          chat_id: ctx.chat.id,
+          first_name: ctx.message.text,
+        },
       });
-    }
-    ctx.session.name = ctx.message.text;
+      if (created) {
+        await user.destroy();
+        user = await User.create({
+          username: ctx.chat.username,
+          chat_id: ctx.chat.id,
+          first_name: ctx.message.text,
+        });
+      }
+      ctx.session.name = ctx.message.text;
 
-    return ctx.scene.enter("age");
+      return ctx.scene.enter("age");
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -54,10 +59,24 @@ const ageScene = new Scene("age");
 ageScene.enter((ctx) => ctx.reply("Сколько тебе полных лет? "));
 ageScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    ctx.session.name = ctx.message.text;
-    await user.update({ age: ctx.message.text });
-    return ctx.scene.enter("sex");
+    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+      await ctx.reply("Сначала заверши регистрацию");
+      return ctx.scene.enter("age");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      ctx.session.name = ctx.message.text;
+      let age = ctx.message.text;
+
+      if (isNaN(Number(age))) {
+        await ctx.reply("Введите корректный возраст...");
+        return ctx.scene.enter("age");
+      } else {
+        await user.update({ age: ctx.message.text });
+        return ctx.scene.enter("sex");
+      }
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -68,10 +87,23 @@ const sexScene = new Scene("sex");
 sexScene.enter((ctx) => ctx.reply("Твой пол?", getSexKeyboard()));
 sexScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    ctx.session.name = ctx.message.text;
-    await user.update({ sex: ctx.message.text });
-    return ctx.scene.enter("lang");
+    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+      await ctx.reply("Сначала заверши регистрацию");
+      return ctx.scene.enter("sex");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      ctx.session.name = ctx.message.text;
+      let sex = ctx.message.text;
+      if (sex === "Парень" || sex === "Девушка") {
+        await user.update({ sex: ctx.message.text });
+        return ctx.scene.enter("lang");
+      } else {
+        await ctx.reply("Выберите из предложенных");
+        return ctx.scene.enter("sex");
+      }
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -82,10 +114,23 @@ const langScene = new Scene("lang");
 langScene.enter((ctx) => ctx.reply("Какой язык изучаешь?"));
 langScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    ctx.session.name = ctx.message.text;
-    await user.update({ lang_code: ctx.message.text });
-    return ctx.scene.enter("info");
+    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+      await ctx.reply("Сначала заверши регистрацию");
+      return ctx.scene.enter("lang");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      ctx.session.name = ctx.message.text;
+      let lang = ctx.message.text;
+      if (lang.split(",").length > 1) {
+        await ctx.reply("Придется выбрать только один");
+        return ctx.scene.enter("lang");
+      } else {
+        await user.update({ lang_code: ctx.message.text });
+        return ctx.scene.enter("info");
+      }
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -96,10 +141,17 @@ const infoScene = new Scene("info");
 infoScene.enter((ctx) => ctx.reply("Добавь описание к анкете:"));
 infoScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    ctx.session.name = ctx.message.text;
-    await user.update({ info: ctx.message.text });
-    return ctx.scene.enter("pfp");
+    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+      await ctx.reply("Сначала заверши регистрацию");
+      return ctx.scene.enter("info");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      ctx.session.name = ctx.message.text;
+      await user.update({ info: ctx.message.text });
+      return ctx.scene.enter("pfp");
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -112,22 +164,27 @@ pfpScene.on(message("photo"), async (ctx) => {
   try {
     const user = await User.findOne({ where: { username: ctx.from.username } });
     const { photo } = ctx.message;
-    const fileInfo = await ctx.telegram.getFile(photo[2].file_id);
-    const link = await ctx.telegram.getFileLink(photo[2].file_id);
-    const res = await fetch(link);
-    const fileBuffer = await res.arrayBuffer();
-    const blob = new Blob([fileBuffer], {
-      type: "image/jpeg",
-    });
-    await supabase.storage
-      .from("pfp")
-      .upload(`photos/${fileInfo.file_unique_id}`, blob, {
-        upsert: true,
+    if (photo === null) {
+      ctx.reply("Неправильный формат");
+      return ctx.scene.enter("pfp");
+    } else {
+      const fileInfo = await ctx.telegram.getFile(photo[2].file_id);
+      const link = await ctx.telegram.getFileLink(photo[2].file_id);
+      const res = await fetch(link);
+      const fileBuffer = await res.arrayBuffer();
+      const blob = new Blob([fileBuffer], {
+        type: "image/jpeg",
       });
-    await user.update({
-      photo: `photos/${fileInfo.file_unique_id}`,
-    });
-    return ctx.scene.enter("seeMyProfile");
+      await supabase.storage
+        .from("pfp")
+        .upload(`photos/${fileInfo.file_unique_id}`, blob, {
+          upsert: true,
+        });
+      await user.update({
+        photo: `photos/${fileInfo.file_unique_id}`,
+      });
+      return ctx.scene.enter("seeMyProfile");
+    }
   } catch (e) {
     ctx.reply(`Что-то пошло не так`);
     console.log(e.stack);
