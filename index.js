@@ -16,7 +16,7 @@ bot.start(async (ctx) => {
     const existingUser = await User.findOne({
       where: { username: ctx.from.username },
     });
-    if (existingUser === null) {
+    if (existingUser === null || existingUser.photo === null) {
       ctx.scene.enter("name");
     } else {
       ctx.scene.enter("seeMyProfile");
@@ -31,7 +31,7 @@ bot.hears("/menu", async (ctx) => {
   let user = await User.findOne({
     where: { username: ctx.from.username },
   });
-  if (user !== null) {
+  if (user !== null || user.photo === null) {
     ctx.scene.enter("menu");
   } else {
     ctx.reply("Необходимо зарегистрироваться, введи /start");

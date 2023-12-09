@@ -13,7 +13,7 @@ const {
 } = require("./functions");
 const { menuKeyboard, editProfileKeyboard, likeKeyboard } = require("./const");
 
-let user;
+// let user;
 let find;
 
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
@@ -25,11 +25,22 @@ const nameScene = new Scene("name");
 nameScene.enter((ctx) => ctx.reply("Привет👋🏻, как тебя зовут? "));
 nameScene.on(message("text"), async (ctx) => {
   try {
-    user = await User.create({
-      username: ctx.chat.username,
-      chat_id: ctx.chat.id,
-      first_name: ctx.message.text,
+    const [user, newUser] = await User.findOrCreate({
+      where: { username: ctx.chat.username },
+      defaults: {
+        username: ctx.chat.username,
+        chat_id: ctx.chat.id,
+        first_name: ctx.message.text,
+      },
     });
+    if (!newUser) {
+      await user.destroy();
+      user = await User.create({
+        username: ctx.chat.username,
+        chat_id: ctx.chat.id,
+        first_name: ctx.message.text,
+      });
+    }
     ctx.session.name = ctx.message.text;
 
     return ctx.scene.enter("age");
@@ -43,6 +54,7 @@ const ageScene = new Scene("age");
 ageScene.enter((ctx) => ctx.reply("Сколько тебе полных лет? "));
 ageScene.on(message("text"), async (ctx) => {
   try {
+    const user = await User.findOne({ where: { username: ctx.from.username } });
     ctx.session.name = ctx.message.text;
     await user.update({ age: ctx.message.text });
     return ctx.scene.enter("sex");
@@ -56,6 +68,7 @@ const sexScene = new Scene("sex");
 sexScene.enter((ctx) => ctx.reply("Твой пол?", getSexKeyboard()));
 sexScene.on(message("text"), async (ctx) => {
   try {
+    const user = await User.findOne({ where: { username: ctx.from.username } });
     ctx.session.name = ctx.message.text;
     await user.update({ sex: ctx.message.text });
     return ctx.scene.enter("lang");
@@ -69,6 +82,7 @@ const langScene = new Scene("lang");
 langScene.enter((ctx) => ctx.reply("Какой язык изучаешь?"));
 langScene.on(message("text"), async (ctx) => {
   try {
+    const user = await User.findOne({ where: { username: ctx.from.username } });
     ctx.session.name = ctx.message.text;
     await user.update({ lang_code: ctx.message.text });
     return ctx.scene.enter("info");
@@ -82,6 +96,7 @@ const infoScene = new Scene("info");
 infoScene.enter((ctx) => ctx.reply("Добавь описание к анкете:"));
 infoScene.on(message("text"), async (ctx) => {
   try {
+    const user = await User.findOne({ where: { username: ctx.from.username } });
     ctx.session.name = ctx.message.text;
     await user.update({ info: ctx.message.text });
     return ctx.scene.enter("pfp");
@@ -95,6 +110,7 @@ const pfpScene = new Scene("pfp");
 pfpScene.enter((ctx) => ctx.reply("Отправь фото для анкеты"));
 pfpScene.on(message("photo"), async (ctx) => {
   try {
+    const user = await User.findOne({ where: { username: ctx.from.username } });
     const { photo } = ctx.message;
     const fileInfo = await ctx.telegram.getFile(photo[2].file_id);
     const link = await ctx.telegram.getFileLink(photo[2].file_id);
