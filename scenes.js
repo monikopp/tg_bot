@@ -29,7 +29,7 @@ nameScene.on(message("text"), async (ctx) => {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("name");
     } else {
-      const [user, created] = await User.findOrCreate({
+      let [user, created] = await User.findOrCreate({
         where: { username: ctx.chat.username },
         defaults: {
           username: ctx.chat.username,
