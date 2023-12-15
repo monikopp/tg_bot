@@ -13,6 +13,11 @@ bot.telegram.setMyCommands(commands);
 
 bot.start(async (ctx) => {
   try {
+    if (ctx.from.username === null) {
+      ctx.reply("Необходимо имя пользователя, чтобы пользоваться ботом(");
+      return;
+    } else {
+    }
     const existingUser = await User.findOne({
       where: { username: ctx.from.username },
     });
@@ -28,13 +33,22 @@ bot.start(async (ctx) => {
 });
 
 bot.hears("/menu", async (ctx) => {
-  let user = await User.findOne({
-    where: { username: ctx.from.username },
-  });
-  if (user?.photo !== null) {
-    ctx.scene.enter("menu");
-  } else {
-    ctx.reply("Необходимо зарегистрироваться, введи /start");
+  try {
+    if (ctx.from.username === null) {
+      ctx.reply("Необходимо имя пользователя, чтобы пользоваться ботом(");
+      return;
+    } else {
+      let user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      if (user?.photo !== null) {
+        ctx.scene.enter("menu");
+      } else {
+        ctx.reply("Необходимо зарегистрироваться, введи /start");
+      }
+    }
+  } catch (e) {
+    console.log(e.stack);
   }
 });
 
