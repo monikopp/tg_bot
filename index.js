@@ -13,7 +13,7 @@ bot.telegram.setMyCommands(commands);
 
 bot.start(async (ctx) => {
   try {
-    if (ctx.from.username === null) {
+    if (ctx.from.username === undefined) {
       ctx.reply("Необходимо имя пользователя, чтобы пользоваться ботом(");
       return;
     } else {
@@ -34,7 +34,7 @@ bot.start(async (ctx) => {
 
 bot.hears("/menu", async (ctx) => {
   try {
-    if (ctx.from.username === null) {
+    if (ctx.from.username === undefined) {
       ctx.reply("Необходимо имя пользователя, чтобы пользоваться ботом(");
       return;
     } else {
