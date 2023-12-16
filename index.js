@@ -5,7 +5,7 @@ const { message } = require("telegraf/filters");
 const { stage } = require("./scenes");
 const { commands } = require("./const");
 
-const bot = new Telegraf(process.env.API_TEST, { polling: true });
+const bot = new Telegraf(process.env.API_TOKEN, { polling: true });
 
 bot.use(session());
 bot.use(stage.middleware());
