@@ -1,5 +1,5 @@
 const { session, Scenes } = require("telegraf");
-
+const cron = require("node-cron");
 const { leave, enter } = Scenes.Stage;
 const { message, editedMessage } = require("telegraf/filters");
 const { Op } = require("sequelize");
@@ -13,7 +13,6 @@ const {
 } = require("./functions");
 const { menuKeyboard, editProfileKeyboard, likeKeyboard } = require("./const");
 
-// let user;
 let find;
 
 const supabase = createClient(process.env.PROJECT_URL, process.env.API_KEY);
@@ -224,9 +223,9 @@ seeOthersScene.enter(async (ctx) => {
         where: { senderId: user.id },
         as: "Sender",
       });
-
-      for (let i = 0; i < find.rows.length; i++) {
-        for (let j = 0; j < alreadyLiked.length; j++) {
+      let res = find.rows;
+      for (let j = 0; j < alreadyLiked.length; j++) {
+        for (let i = 0; i < find.rows.length; i++) {
           if (find.rows[i]?.id === alreadyLiked[j].receiverId) {
             find.rows.splice(i, 1);
           }
@@ -489,8 +488,7 @@ langUpdScene.on(message("text"), async (ctx) => {
       const user = await User.findOne({
         where: { username: ctx.from.username },
       });
-      // await user.update({ lang_code: ctx.message.text });
-      // return ctx.scene.enter("seeMyProfile");
+
       let msg = ctx.message.text;
       let lang = msg[0].toUpperCase() + msg.slice(1);
       if (
@@ -565,6 +563,56 @@ sexUpdScene.on(message("text"), async (ctx) => {
   }
 });
 
+// ============УВЕДОМЛЕНИЯ================================
+// const wereRatedScene = new Scene("wereRated");
+// let uWereLikedBy;
+// wereRatedScene.enter(async (ctx) => {
+//   try {
+//     const user = await User.findOne({ where: { username: ctx.from.username } });
+
+//     if (user.photo !== null) {
+//       uWereLikedBy = await Like.findAndCountAll({
+//         where: {
+//           receiverId: user.Id,
+//           type: "like",
+//           include: { model: User, as: "Receiver" },
+//         },
+//       });
+//       const uLiked = await Like.findAndCountAll({
+//         where: {
+//           senderId: user.Id,
+//           type: "like",
+//           include: { model: User, as: "Sender" },
+//         },
+//       });
+//       if (uWereLikedBy.rows.length > 0) {
+//         for (let j = 0; j < uLiked.length; j++) {
+//           for (let i = 0; i < uWereLikedBy.length; i++) {
+//             if (uWereLikedBy.rows[i].senderId === uLiked.rows[j].receiverId) {
+//               uWereLikedBy.rows.splice(i, 1);
+//             }
+//           }
+//         }
+//         if (uWereLikedBy.rows.length > 0) {
+//           if (user.sex === "Парень") {
+//             await ctx.reply(
+//               `Ты понравился стольким людям : ${uWereLikedBy.rows.length}\n\nХочешь посмотреть?\n1.Хочу посмотреть\n2.Не хочу смотреть`
+//             );
+//           } else if (user.sex === "Девушка") {
+//             await ctx.reply(
+//               `Ты понравилась стольким людям : ${uWereLikedBy.rows.length}\n\nХочешь посмотреть?\n1.Хочу посмотреть\n2.Не хочу смотреть`
+//             );
+//           }
+//         }
+//       }
+//     } else {
+//       ctx.scene.leave();
+//     }
+//   } catch (e) {
+//     console.log(e.stack);
+//   }
+// });
+// cron.schedule("* * * * *", () => {});
 const stage = new Scenes.Stage([
   nameScene,
   ageScene,
