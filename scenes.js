@@ -208,12 +208,13 @@ seeOthersScene.enter(async (ctx) => {
   try {
     ctx.session.name = ctx.message.text;
     const user = await User.findOne({ where: { username: ctx.from.username } });
+    let lang = user.lang_code[0].toUpperCase() + user.lang_code.slice(1);
     find = await User.findAndCountAll({
       where: {
         photo: { [Op.not]: null },
         id: { [Op.not]: user.id },
         [Op.or]: [
-          { lang_code: { [Op.substring]: user.lang_code } },
+          { lang_code: { [Op.substring]: lang } },
           { age: { [Op.between]: [+user.age - 1, +user.age + 1] } },
         ],
       },
