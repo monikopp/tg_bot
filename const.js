@@ -1,6 +1,7 @@
 const commands = [
   { command: "/start", description: "Запустить бота" },
   { command: "/menu", description: "Открыть меню" },
+  { command: "/help", description: "Помощь" },
 ];
 
 const likeKeyboard = [["1.❤️", "2.👎", "3.Вернуться в меню"]];
