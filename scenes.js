@@ -25,7 +25,7 @@ const nameScene = new Scene("name");
 nameScene.enter((ctx) => ctx.reply("Привет👋🏻, как тебя зовут? "));
 nameScene.on(message("text"), async (ctx) => {
   try {
-    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+    if (ctx.message.text.trim()[0] === "/") {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("name");
     } else {
@@ -59,7 +59,7 @@ const ageScene = new Scene("age");
 ageScene.enter((ctx) => ctx.reply("Сколько тебе полных лет? "));
 ageScene.on(message("text"), async (ctx) => {
   try {
-    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+    if (ctx.message.text.trim()[0] === "/") {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("age");
     } else {
@@ -87,7 +87,7 @@ const sexScene = new Scene("sex");
 sexScene.enter((ctx) => ctx.reply("Твой пол?", getSexKeyboard()));
 sexScene.on(message("text"), async (ctx) => {
   try {
-    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+    if (ctx.message.text.trim()[0] === "/") {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("sex");
     } else {
@@ -111,10 +111,14 @@ sexScene.on(message("text"), async (ctx) => {
 });
 
 const langScene = new Scene("lang");
-langScene.enter((ctx) => ctx.reply("Какой язык изучаешь?"));
+langScene.enter((ctx) =>
+  ctx.reply(
+    "Какой язык изучаешь?\n(Если изучаешь несколько, придется выбрать один)"
+  )
+);
 langScene.on(message("text"), async (ctx) => {
   try {
-    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+    if (ctx.message.text.trim()[0] === "/") {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("lang");
     } else {
@@ -122,12 +126,18 @@ langScene.on(message("text"), async (ctx) => {
         where: { username: ctx.from.username },
       });
       ctx.session.name = ctx.message.text;
-      let lang = ctx.message.text;
-      if (lang.split(",").length > 1) {
+
+      let msg = ctx.message.text;
+      let lang = msg[0].toUpperCase() + msg.slice(1);
+      if (
+        lang.split(",").length > 1 ||
+        lang.split(" ").length > 1 ||
+        lang.split("и").length > 1
+      ) {
         await ctx.reply("Придется выбрать только один");
         return ctx.scene.enter("lang");
       } else {
-        await user.update({ lang_code: ctx.message.text });
+        await user.update({ lang_code: lang });
         return ctx.scene.enter("info");
       }
     }
@@ -141,7 +151,7 @@ const infoScene = new Scene("info");
 infoScene.enter((ctx) => ctx.reply("Добавь описание к анкете:"));
 infoScene.on(message("text"), async (ctx) => {
   try {
-    if (ctx.message.text === "/menu" || ctx.message.text === "/start") {
+    if (ctx.message.text.trim()[0] === "/") {
       await ctx.reply("Сначала заверши регистрацию");
       return ctx.scene.enter("info");
     } else {
@@ -392,9 +402,16 @@ const nameUpdScene = new Scene("nameUpd");
 nameUpdScene.enter((ctx) => ctx.reply("Введи новое имя"));
 nameUpdScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    await user.update({ first_name: ctx.message.text });
-    return ctx.scene.enter("seeMyProfile");
+    if (ctx.message.text.trim()[0] === "/") {
+      await ctx.reply("Сначала заверши редактирование");
+      return ctx.scene.enter("nameUpd");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      await user.update({ first_name: ctx.message.text });
+      return ctx.scene.enter("seeMyProfile");
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -407,23 +424,28 @@ pfpUpdScene.on(message("photo"), async (ctx) => {
   try {
     const user = await User.findOne({ where: { username: ctx.from.username } });
     const { photo } = ctx.message;
-    const fileInfo = await ctx.telegram.getFile(photo[2].file_id);
-    const link = await ctx.telegram.getFileLink(photo[2].file_id);
-    const res = await fetch(link);
-    const fileBuffer = await res.arrayBuffer();
-    const blob = new Blob([fileBuffer], {
-      type: "image/jpeg",
-    });
-    await supabase.storage
-      .from("pfp")
-      .upload(`photos/${fileInfo.file_unique_id}`, blob, {
-        upsert: true,
+    if (photo === null) {
+      ctx.reply("Неправильный формат");
+      return ctx.scene.enter("pfp");
+    } else {
+      const fileInfo = await ctx.telegram.getFile(photo[2].file_id);
+      const link = await ctx.telegram.getFileLink(photo[2].file_id);
+      const res = await fetch(link);
+      const fileBuffer = await res.arrayBuffer();
+      const blob = new Blob([fileBuffer], {
+        type: "image/jpeg",
       });
-    await user.update({
-      photo: `photos/${fileInfo.file_unique_id}`,
-    });
+      await supabase.storage
+        .from("pfp")
+        .upload(`photos/${fileInfo.file_unique_id}`, blob, {
+          upsert: true,
+        });
+      await user.update({
+        photo: `photos/${fileInfo.file_unique_id}`,
+      });
 
-    return ctx.scene.enter("seeMyProfile");
+      return ctx.scene.enter("seeMyProfile");
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -435,9 +457,16 @@ const infoUpdScene = new Scene("infoUpd");
 infoUpdScene.enter((ctx) => ctx.reply("Добавь новое описание к анкете:"));
 infoUpdScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    await user.update({ info: ctx.message.text });
-    return ctx.scene.enter("seeMyProfile");
+    if (ctx.message.text.trim()[0] === "/") {
+      await ctx.reply("Сначала заверши редактирование");
+      return ctx.scene.enter("infoUpd");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      await user.update({ info: ctx.message.text });
+      return ctx.scene.enter("seeMyProfile");
+    }
   } catch (e) {
     console.log(e.satck);
     ctx.reply(`Что-то пошло не так`);
@@ -446,12 +475,36 @@ infoUpdScene.on(message("text"), async (ctx) => {
 
 const langUpdScene = new Scene("langUpd");
 
-langUpdScene.enter((ctx) => ctx.reply("Какой язык изучаешь?"));
+langUpdScene.enter((ctx) =>
+  ctx.reply(
+    "Какой язык изучаешь?\n(Если изучаешь несколько, придется выбрать один)"
+  )
+);
 langUpdScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    await user.update({ lang_code: ctx.message.text });
-    return ctx.scene.enter("seeMyProfile");
+    if (ctx.message.text.trim()[0] === "/") {
+      await ctx.reply("Сначала заверши редактирование");
+      return ctx.scene.enter("langUpd");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      // await user.update({ lang_code: ctx.message.text });
+      // return ctx.scene.enter("seeMyProfile");
+      let msg = ctx.message.text;
+      let lang = msg[0].toUpperCase() + msg.slice(1);
+      if (
+        lang.split(",").length > 1 ||
+        lang.split(" ").length > 1 ||
+        lang.split("и").length > 1
+      ) {
+        await ctx.reply("Придется выбрать только один");
+        return ctx.scene.enter("langUpd");
+      } else {
+        await user.update({ lang_code: lang });
+        return ctx.scene.enter("seeMyProfile");
+      }
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -463,9 +516,22 @@ const ageUpdScene = new Scene("ageUpd");
 ageUpdScene.enter((ctx) => ctx.reply("Введи новый возраст"));
 ageUpdScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-    await user.update({ age: ctx.message.text });
-    return ctx.scene.enter("seeMyProfile");
+    if (ctx.message.text.trim()[0] === "/") {
+      await ctx.reply("Сначала заверши редактирование");
+      return ctx.scene.enter("ageUpd");
+    } else {
+      let age = ctx.message.text;
+      if (isNaN(Number(age))) {
+        await ctx.reply("Введите корректный возраст...");
+        return ctx.scene.enter("ageUpd");
+      } else {
+        const user = await User.findOne({
+          where: { username: ctx.from.username },
+        });
+        await user.update({ age: ctx.message.text });
+        return ctx.scene.enter("seeMyProfile");
+      }
+    }
   } catch (e) {
     console.log(e.stack);
     ctx.reply(`Что-то пошло не так`);
@@ -477,11 +543,22 @@ const sexUpdScene = new Scene("sexUpd");
 sexUpdScene.enter((ctx) => ctx.reply("Твой пол?", getSexKeyboard()));
 sexUpdScene.on(message("text"), async (ctx) => {
   try {
-    const user = await User.findOne({ where: { username: ctx.from.username } });
-
-    await user.update({ sex: ctx.message.text });
-
-    return ctx.scene.enter("seeMyProfile");
+    if (ctx.message.text.trim()[0] === "/") {
+      await ctx.reply("Сначала заверши редактирование");
+      return ctx.scene.enter("sexUpd");
+    } else {
+      const user = await User.findOne({
+        where: { username: ctx.from.username },
+      });
+      let sex = ctx.message.text;
+      if (sex === "Парень" || sex === "Девушка") {
+        await user.update({ sex: ctx.message.text });
+        return ctx.scene.enter("seeMyProfile");
+      } else {
+        await ctx.reply("Выберите из предложенных");
+        return ctx.scene.enter("sexUpd");
+      }
+    }
   } catch (e) {
     ctx.reply(`Что-то пошло не так`);
     console.log(e.stack);
