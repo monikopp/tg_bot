@@ -223,7 +223,7 @@ seeOthersScene.enter(async (ctx) => {
         where: { senderId: user.id },
         as: "Sender",
       });
-      let res = find.rows;
+
       for (let j = 0; j < alreadyLiked.length; j++) {
         for (let i = 0; i < find.rows.length; i++) {
           if (find.rows[i]?.id === alreadyLiked[j].receiverId) {
