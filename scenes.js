@@ -126,7 +126,7 @@ langScene.on(message("text"), async (ctx) => {
       });
       ctx.session.name = ctx.message.text;
 
-      let msg = ctx.message.text;
+      let msg = ctx.message.text.trim();
       let lang = msg[0].toUpperCase() + msg.slice(1);
       if (
         lang.split(",").length > 1 ||
@@ -490,7 +490,7 @@ langUpdScene.on(message("text"), async (ctx) => {
         where: { username: ctx.from.username },
       });
 
-      let msg = ctx.message.text;
+      let msg = ctx.message.text.trim();
       let lang = msg[0].toUpperCase() + msg.slice(1);
       if (
         lang.split(",").length > 1 ||
