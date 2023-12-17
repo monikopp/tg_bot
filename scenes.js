@@ -128,11 +128,7 @@ langScene.on(message("text"), async (ctx) => {
 
       let msg = ctx.message.text.trim();
       let lang = msg[0].toUpperCase() + msg.slice(1);
-      if (
-        lang.split(",").length > 1 ||
-        lang.split(" ").length > 1 ||
-        lang.split("и").length > 1
-      ) {
+      if (lang.split(",").length > 1 || lang.split(" ").length > 1) {
         await ctx.reply("Придется выбрать только один");
         return ctx.scene.enter("lang");
       } else {
@@ -492,11 +488,7 @@ langUpdScene.on(message("text"), async (ctx) => {
 
       let msg = ctx.message.text.trim();
       let lang = msg[0].toUpperCase() + msg.slice(1);
-      if (
-        lang.split(",").length > 1 ||
-        lang.split(" ").length > 1 ||
-        lang.split("и").length > 1
-      ) {
+      if (lang.split(",").length > 1 || lang.split(" ").length > 1) {
         await ctx.reply("Придется выбрать только один");
         return ctx.scene.enter("langUpd");
       } else {
